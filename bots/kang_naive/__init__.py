@@ -41,24 +41,31 @@ class Player:
                     response = "DISCARD:" + self.discard
                 else:
                     if "CALL" in parts:
-                        minBet = int(parts[len(parts) - 2].split(":")[1])
-                        maxBet = int(parts[len(parts) - 2].split(":")[2])
-                        if minBet - 2 > self.value:
-                            response = "FOLD"
-                        elif minBet < self.value:
-                            response = "CALL"
+                        if parts[len(parts) - 2].startswith("RAISE"):
+                            minBet = int(parts[len(parts) - 2].split(":")[1])
+                            maxBet = int(parts[len(parts) - 2].split(":")[2])
+                            if minBet - 2 > self.value:
+                                response = "FOLD"
+                            elif minBet < self.value:
+                                response = "CALL"
+                            else:
+                                betAmount = self.value * 20
+                                if betAmount > maxBet:
+                                    betAmount = maxBet 
+                                response = "RAISE:" + str(betAmount)
                         else:
-                            betAmount = self.value * 6
-                            if betAmount > maxBet:
-                                betAmount = maxBet 
-                            response = "RAISE:" + str(betAmount)
+                            minBet = 200
+                            if minBet <= self.value:
+                                response = "CALL"
+                            else:
+                                response = "FOLD"
                     elif "CHECK" in parts:
                         minBet = int(parts[len(parts) - 2].split(":")[1])
                         maxBet = int(parts[len(parts) - 2].split(":")[2])
                         if minBet > self.value:
                             response = "CHECK"
                         else:
-                            betAmount = self.value * 6
+                            betAmount = self.value * 20
                             if betAmount > maxBet:
                                 betAmount = maxBet
                             if parts[len(parts) - 2].startswith("BET"):
