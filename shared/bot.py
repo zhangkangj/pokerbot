@@ -7,7 +7,7 @@ Created on Jan 8, 2013
 class Bot(object):
     def initialize(self):
         self.blind = None
-        self.botton = None
+        self.button = None
         self.holeCards = []
         self.boardCards = []
         self.time = None
