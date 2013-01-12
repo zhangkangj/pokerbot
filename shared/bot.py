@@ -13,6 +13,8 @@ class Bot(object):
         self.time = None
         self.street = None
         self.history = None
+        self.stackSize = None
+        self.bb = None
         self.potSize = None
         self.minBet = None
         self.maxBet = None
