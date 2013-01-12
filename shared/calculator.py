@@ -77,8 +77,9 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
         ranks[card%13] += 1
         suits[card/13] += 1
     ranks2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    ranks3 = [x > 0 for x in ranks]
     for i in range(8):
-        if sum(ranks[i:(i+5)]) >= 4:
+        if sum(ranks3[i:(i+5)]) >= 4:
             for j in range(i,(i+5)):
                 ranks2[j] = 1
 #    print ranks
@@ -101,7 +102,7 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
             return [cards[0], cards[1]] 
         
 if __name__ == '__main__':
-    myCardString = ["7d", "8c", "9c"]
+    myCardString = ["7d", "7c", "8c"]
     boardString = ["Ad", "Jh", "Tc"]
     print myCardString, boardString
     myCard = [card_to_number(x) for x in myCardString]
