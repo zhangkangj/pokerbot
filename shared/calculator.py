@@ -67,7 +67,7 @@ def flopOdd(myCards, board, cardString = None, boardString = None):
         return myCards3, totalProb3 / n 
 
 def simpleDiscard(cards, board, cardString = None, boardString = None):
-    ranks = [0] * 13
+    ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     suits = [0, 0, 0, 0]
     keep = [100, 100, 100]
     for card in board:
@@ -76,7 +76,7 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
     for card in cards:
         ranks[card%13] += 1
         suits[card/13] += 1
-    ranks2 = [0] * 13
+    ranks2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     for i in range(8):
         if sum(ranks[i:(i+5)]) >= 4:
             for j in range(i,(i+5)):
@@ -89,9 +89,9 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
         suit = cards[i] % 4
 #        print rank, suit, ranks[rank], suits[suit], ranks2[rank] 
         if ranks[rank] == 1 and suits[suit] < 4 and ranks2[rank] == 0:
-            keep[i] = rank + suits[suit] * 2.1
+            keep[i] = rank + suits[suit] * 2
     if sum(keep) == 300:
-        return None
+        return []
     else:
         if keep[0] < keep[1] and keep[0] < keep[2]:
             return [cards[1], cards[2]] 
@@ -99,15 +99,18 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
             return [cards[0], cards[2]] 
         else:
             return [cards[0], cards[1]] 
+        
 if __name__ == '__main__':
-    myCardString = ["2d", "8c", "9c"]
+    myCardString = ["7d", "8c", "9c"]
     boardString = ["Ad", "Jh", "Tc"]
     print myCardString, boardString
     myCard = [card_to_number(x) for x in myCardString]
     board = [card_to_number(x) for x in boardString]
     boardString =  "".join(boardString)
     
+    #start = datetime.now()
     print [number_to_card(x) for x in simpleDiscard(myCard, board)]
+    #print "time:" + str(datetime.now() - start)
     
 #    start = datetime.now()
 #    print flopOdd(myCard, board)
