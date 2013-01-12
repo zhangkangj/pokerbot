@@ -126,7 +126,7 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
             return [cards[0], cards[1]] 
         
 if __name__ == '__main__':
-    myCardString = ["Ac", "As", "5d"]
+    myCardString = ["Ac", "Ks", "5d"]
     boardString = ["Ah", "5c", "2h"]
     print myCardString, boardString
     myCard = [card_to_number(x) for x in myCardString]
@@ -144,4 +144,3 @@ if __name__ == '__main__':
     start = datetime.now()
     print flopOddNaive(myCard, board)
     print "time:" + str(datetime.now() - start)
-    
