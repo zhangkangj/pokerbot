@@ -49,7 +49,7 @@ class Player:
                             elif minBet < self.value:
                                 response = "CALL"
                             else:
-                                betAmount = self.value * 20
+                                betAmount = self.value * 5
                                 if betAmount > maxBet:
                                     betAmount = maxBet 
                                 response = "RAISE:" + str(betAmount)
@@ -65,7 +65,7 @@ class Player:
                         if minBet > self.value:
                             response = "CHECK"
                         else:
-                            betAmount = self.value * 20
+                            betAmount = self.value * 5
                             if betAmount > maxBet:
                                 betAmount = maxBet
                             if parts[len(parts) - 2].startswith("BET"):
