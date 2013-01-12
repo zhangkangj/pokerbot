@@ -96,13 +96,13 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
     ranks2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     ranks3 = [x > 0 for x in ranks] # card presence at each rank
     # test 4-connectors straight
-    for i in range(8):
+    for i in range(9):
         if sum(ranks3[i:(i+5)]) >= 4:
             for j in range(i,(i+5)):
                 ranks2[j] = 1
     #special case for Aces straight
-    if sum(ranks3[0:4]) + ranks3[12] == 4:
-        ranks3[0] = ranks3[1] = ranks3[2] = ranks3[3]= ranks3[12] = 0
+    if sum(ranks3[0:4]) + ranks3[12] >= 4:
+        ranks2[0] = ranks2[1] = ranks2[2] = ranks2[3]= ranks2[12] = 1
 
 #    print ranks
 #    print suits
@@ -126,8 +126,8 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
             return [cards[0], cards[1]] 
         
 if __name__ == '__main__':
-    myCardString = ["Ac", "Ks", "5d"]
-    boardString = ["Ah", "5c", "2h"]
+    myCardString = ["Ac", "5s", "5d"]
+    boardString = ["Kh", "Qc", "Jh"]
     print myCardString, boardString
     myCard = [card_to_number(x) for x in myCardString]
     board = [card_to_number(x) for x in boardString]
