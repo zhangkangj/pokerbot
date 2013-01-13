@@ -11,7 +11,7 @@ class Bot(object):
         self.holeCards = []
         self.boardCards = []
         self.time = None
-        self.street = None
+        self.numBoardCards = None
         self.history = None
         self.stackSize = None
         self.bb = None
