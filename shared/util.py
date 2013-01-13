@@ -72,3 +72,9 @@ def draw_cards(n = 1, number = False):
         return sample(number_list, n) 
     else:
         return sample(card_list, n)
+    
+def hash_cards(cards):
+    hashCode = 0
+    for card in cards:
+        hashCode = hashCode * 52 + card
+    return hashCode
