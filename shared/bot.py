@@ -6,16 +6,20 @@ Created on Jan 8, 2013
 
 class Bot(object):
     def initialize(self):
+        self.oppName = None
+        self.stackSize = None
+        self.bb = None
+        
         self.blind = None
         self.button = None
         self.holeCards = []
-        self.boardCards = []
-        self.time = None
+        
         self.numBoardCards = None
-        self.history = None
-        self.stackSize = None
-        self.bb = None
+        self.boardCards = []
         self.potSize = None
+        
+        self.time = None
+        self.history = None
         self.minBet = None
         self.maxBet = None
         self.actions = []
