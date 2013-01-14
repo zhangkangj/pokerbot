@@ -39,7 +39,7 @@ def flopOddNaive(cards, board, cardString = None, boardString = None):
     else:
         return cardString[1] + cardString[2], odd3
 
-def flopOdd(myCards, board, cardString = None, boardString = None, sampleRate = 0.03):
+def flopOdd(myCards, board, cardString = None, boardString = None, sampleRate = 0.1):
     myCards.sort()
     board.sort()
     if cardString == None:
@@ -166,7 +166,7 @@ def initializePreflopOdds():
 if __name__ == '__main__':
     #initializeFlopOdds()
     #initializePreflopOdds()
-    myCardString = ["Ac", "As", "5d"]
+    myCardString = ["Ac", "6s", "5d"]
     boardString = ["Ah", "5c", "2h"]
     print myCardString, boardString
     myCard = [card_to_number(x) for x in myCardString]
