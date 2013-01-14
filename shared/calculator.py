@@ -39,6 +39,24 @@ def flopOddNaive(cards, board, cardString = None, boardString = None):
     else:
         return cardString[1] + cardString[2], odd3
 
+def flopOddAdjusted(cards, board, cardString = None, boardString = None, iterations = 2000):
+    if cardString == None:
+        cardString = [number_to_card(x) for x in cards]
+    if boardString == None:
+        boardString = "".join([number_to_card(x) for x in board])   
+    myCards1 = cardString[0] + cardString[1]
+    myCards2 = cardString[0] + cardString[2]
+    myCards3 = cardString[1] + cardString[2]
+    odd1 = calc(myCards1 + ":xx", boardString, "", iterations).ev[0]
+    odd2 = calc(myCards2 + ":xx", boardString, "", iterations).ev[0]
+    odd3 = calc(myCards3 + ":xx", boardString, "", iterations).ev[0]
+    if odd1 > odd2 and odd1 > odd3:
+        return myCards1, odd1 * 0.819+0.142
+    if odd2 > odd1 and odd2 > odd3:
+        return myCards2, odd1 * 0.819+0.142
+    if odd3 > odd1 and odd3 > odd2:
+        return myCards3, odd1 * 0.819+0.142
+    
 def flopOdd(myCards, board, cardString = None, boardString = None, sampleRate = 0.1):
     myCards.sort()
     board.sort()
@@ -179,7 +197,7 @@ if __name__ == '__main__':
     print flopOdd(myCard, board)
     print "time:" + str(datetime.now() - start)
     
-    initializeFlopOdds()
+    #initializeFlopOdds()
     
     start = datetime.now()
     print flopOdd(myCard, board)
