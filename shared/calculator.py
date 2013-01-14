@@ -2,6 +2,11 @@
 Created on Jan 10, 2013
 
 @author: zhk
+
+useful functions:
+flopOddAdjusted(): A simple fast flop equity calculator adjusted for opponent hand strength using linear regression. Takes a list of hand cards and a list of board cards (converted to numbers) and returns cards to keep and equity
+preflopOdd(): A fast equity preflop calculator using a precomputed table. Call initializePreflopOdds() to initialize. Takes a list of hand cards (converted to numbers) and returns equity
+
 '''
 
 from shared.pbots_calc import calc
@@ -38,8 +43,26 @@ def flopOddNaive(cards, board, cardString = None, boardString = None):
         return cardString[0] + cardString[2], odd2
     else:
         return cardString[1] + cardString[2], odd3
-
-def flopOdd(myCards, board, cardString = None, boardString = None, sampleRate = 0.03):
+ 
+def flopOddAdjusted(cards, board, cardString = None, boardString = None, iterations = 2000):
+    if cardString == None:
+        cardString = [number_to_card(x) for x in cards]
+    if boardString == None:
+        boardString = "".join([number_to_card(x) for x in board])   
+    myCards1 = cardString[0] + cardString[1]
+    myCards2 = cardString[0] + cardString[2]
+    myCards3 = cardString[1] + cardString[2]
+    odd1 = calc(myCards1 + ":xx", boardString, "", iterations).ev[0]
+    odd2 = calc(myCards2 + ":xx", boardString, "", iterations).ev[0]
+    odd3 = calc(myCards3 + ":xx", boardString, "", iterations).ev[0]
+    if odd1 > odd2 and odd1 > odd3:
+        return myCards1, odd1 * 0.819+0.142
+    if odd2 > odd1 and odd2 > odd3:
+        return myCards2, odd1 * 0.819+0.142
+    if odd3 > odd1 and odd3 > odd2:
+        return myCards3, odd1 * 0.819+0.142
+    
+def flopOdd(myCards, board, cardString = None, boardString = None, sampleRate = 0.1):
     myCards.sort()
     board.sort()
     if cardString == None:
@@ -166,7 +189,7 @@ def initializePreflopOdds():
 if __name__ == '__main__':
     #initializeFlopOdds()
     #initializePreflopOdds()
-    myCardString = ["Ac", "As", "5d"]
+    myCardString = ["Ac", "6s", "5d"]
     boardString = ["Ah", "5c", "2h"]
     print myCardString, boardString
     myCard = [card_to_number(x) for x in myCardString]
@@ -179,7 +202,7 @@ if __name__ == '__main__':
     print flopOdd(myCard, board)
     print "time:" + str(datetime.now() - start)
     
-    initializeFlopOdds()
+    #initializeFlopOdds()
     
     start = datetime.now()
     print flopOdd(myCard, board)
