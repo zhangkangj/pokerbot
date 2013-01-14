@@ -2,6 +2,11 @@
 Created on Jan 10, 2013
 
 @author: zhk
+
+useful functions:
+flopOddAdjusted(): A simple fast flop equity calculator adjusted for opponent hand strength using linear regression. Takes a list of hand cards and a list of board cards (converted to numbers) and returns cards to keep and equity
+preflopOdd(): A fast equity preflop calculator using a precomputed table. Call initializePreflopOdds() to initialize. Takes a list of hand cards (converted to numbers) and returns equity
+
 '''
 
 from shared.pbots_calc import calc
@@ -38,7 +43,7 @@ def flopOddNaive(cards, board, cardString = None, boardString = None):
         return cardString[0] + cardString[2], odd2
     else:
         return cardString[1] + cardString[2], odd3
-
+ 
 def flopOddAdjusted(cards, board, cardString = None, boardString = None, iterations = 2000):
     if cardString == None:
         cardString = [number_to_card(x) for x in cards]
