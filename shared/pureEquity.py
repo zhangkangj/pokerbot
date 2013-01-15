@@ -6,6 +6,7 @@ import calculator
 import util
 
 from datetime import datetime
+from copy import deepcopy
 
 #fixed parameters; will be dynamic later
 firstRaiseRatio = 3.5
@@ -20,6 +21,7 @@ class preflopBot(Bot):
         self.numPreflopRaises = 0
         
         #requested by Mark for post flop
+        self.position = None
         self.isPreflopAggressor = None
         self.lastAction = None
         self.oppLastAction = None
@@ -47,6 +49,7 @@ class preflopBot(Bot):
 
     def getOppRaiseAmount(self):
         oppRaise = self.recentActions[-1]
+        print oppRaise
         return int(oppRaise.split(':')[1])
     
     def calPotOdd(self, oppRaiseAmount):
@@ -172,6 +175,7 @@ class preflopBot(Bot):
             action = self.recentActions[i]
             if action.endswith(self.oppName):
                 self.oppLastAction = action[:-len(self.oppName)-1]
+                break
                 
     def getLastAction(self):
         for i in range(len(self.recentActions)-1, -1, -1):
@@ -199,7 +203,12 @@ class preflopBot(Bot):
                 self.stackSize = int(parts[3])
                 self.bb = int(parts[4])
             elif word == "NEWHAND":
-                self.button = bool(parts[2])
+                if parts[2] == "false":
+                    self.button = False
+                else:
+                    self.button = True
+                print parts[2]
+                print self.button
                 self.position = self.button
                 self.holeCards = [parts[3], parts[4], parts[5]]
                 #start1 = datetime.now()
@@ -296,7 +305,9 @@ class preflopBot(Bot):
             self.SBPreflop()
         else:
             self.getOppLastAction()
-            if self.oppLastAction.startswith("CHECK"): #opp gives up position
+            print self.oppLastAction
+            print self.oppLastAction.startswith("CALL")
+            if self.oppLastAction.startswith("CALL"): #opp gives up position
                 self.position = True
                 self.SBPreflop()
             elif self.oppLastAction.startswith("BET"):
@@ -317,6 +328,9 @@ class preflopBot(Bot):
     def flop(self):
         # out of position
         if not self.button:
+            print self.button
+            print self.recentActions
+            
             # opponent has not acted yet
             if not self.oppLastAction:
                 if self.isPreflopAggressor:
@@ -351,6 +365,9 @@ class preflopBot(Bot):
                         return
         # in position
         else:
+            print self.button
+            
+            print self.recentActions
             oppAct = self.oppLastAction.split(":")[0]
             # opponent raised
             if "RAISE" in oppAct:
