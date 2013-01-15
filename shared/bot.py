@@ -78,7 +78,7 @@ class Bot(object):
     def bet(self, amount):
         self.socket.send("BET:" + str(amount) + "\n")
     
-    def fold(self, fold):
+    def fold(self):
         self.socket.send("FOLD\n")
         
     def discard(self, card):
