@@ -66,6 +66,9 @@ class Bot(object):
     #actions
     def check(self):
         self.socket.send("CHECK\n")
+        
+    def call(self):
+        self.socket.send("CALL\n")
     
     def rais(self, amount):
         amount = min(amount, self.maxBet)
