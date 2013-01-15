@@ -6,6 +6,7 @@ Created on Jan 8, 2013
 
 class Bot(object): 
     def initialize(self):
+        self.name = None
         self.oppName = None
         self.stackSize = None
         self.bb = None
