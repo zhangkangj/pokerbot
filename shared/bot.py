@@ -14,6 +14,7 @@ class Bot(object):
         self.blind = None
         self.button = None
         self.holeCards = []
+        self.handID = None
         
         self.numBoardCards = None
         self.boardCards = []
