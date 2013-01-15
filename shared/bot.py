@@ -19,7 +19,7 @@ class Bot(object):
         self.potSize = None
         
         self.time = None
-        self.recentActions = None
+        self.recentActions = []
         self.minBet = None
         self.maxBet = None
         self.actions = []
@@ -71,7 +71,7 @@ class Bot(object):
         self.socket.send("CALL\n")
     
     def rais(self, amount):
-        amount = min(amount, self.maxBet)
+        amount = max(min(amount, self.maxBet), self.minBet)
         self.socket.send("RAISE:" + amount + "\n")
     
     def bet(self, amount):
