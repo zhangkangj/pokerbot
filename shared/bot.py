@@ -4,7 +4,7 @@ Created on Jan 8, 2013
 @author: zhk
 '''
 
-class Bot(object):
+class Bot(object): 
     def initialize(self):
         self.oppName = None
         self.stackSize = None
@@ -23,8 +23,8 @@ class Bot(object):
         self.minBet = None
         self.maxBet = None
         self.actions = []
- 
-    def __init__(self, socket):
+    
+    def __init__(self, socket):                
         self.socket = socket
         self.initialize()
     
@@ -72,10 +72,10 @@ class Bot(object):
     
     def rais(self, amount):
         amount = max(min(amount, self.maxBet), self.minBet)
-        self.socket.send("RAISE:" + amount + "\n")
+        self.socket.send("RAISE:" + str(amount) + "\n")
     
     def bet(self, amount):
-        self.socket.send("BET:" + amount + "\n")
+        self.socket.send("BET:" + str(amount) + "\n")
     
     def fold(self, fold):
         self.socket.send("FOLD\n")
