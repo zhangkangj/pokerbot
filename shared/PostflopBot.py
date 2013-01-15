@@ -231,7 +231,7 @@ class PostflopBot(Bot):
     def haveFlush(self):
         for suit in ["c", "d", "h", "s"]:
             suitCount = sum([int(suit in c) for c in self.holeCards + self.boardCards])
-            if suitCount == 4: return True
+            if suitCount == 5: return True
         return False
 
     def haveFlushDraw(self):
@@ -252,4 +252,10 @@ class PostflopBot(Bot):
         for v in values:
             if v+1 in values and v+2 in values and v+3 in values:
                 return True
+        return False
+
+
+    def haveFullHouse(self):
+        if havePair() == 1 and haveTrips():
+            return True
         return False
