@@ -182,7 +182,7 @@ class preflopBot(Bot):
     def run(self, input_socket):
         f_in = input_socket.makefile()
         while True:
-            start2 = datetime.now()
+            #start2 = datetime.now()
             data = f_in.readline().strip()
             if not data:
                 print "Gameover, engine disconnected."
@@ -202,10 +202,10 @@ class preflopBot(Bot):
                 self.button = bool(parts[2])
                 self.position = self.button
                 self.holeCards = [parts[3], parts[4], parts[5]]
-                start1 = datetime.now()
+                #start1 = datetime.now()
                 self.equity = calculator.preflopOdd(
                     [util.card_to_number(card) for card in self.holeCards])
-                print "time1:" + str(datetime.now() - start1)
+                #print "time1:" + str(datetime.now() - start1)
                 self.numPreflopRaises = 0
                 self.numBoardCards = 0
                 self.recentActions = []
@@ -255,7 +255,7 @@ class preflopBot(Bot):
             elif word == "REQUESTKEYVALUES":
                 self.socket.send("FINISH\n")
                 
-            print "time2:" + str(datetime.now() - start2)
+            #print "time2:" + str(datetime.now() - start2)
         # Clean up the socket.
         self.socket.close()
 
