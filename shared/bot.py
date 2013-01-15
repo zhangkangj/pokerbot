@@ -19,7 +19,7 @@ class Bot(object):
         self.potSize = None
         
         self.time = None
-        self.history = None
+        self.recentActions = None
         self.minBet = None
         self.maxBet = None
         self.actions = []
