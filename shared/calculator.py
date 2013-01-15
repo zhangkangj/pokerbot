@@ -103,6 +103,20 @@ def flopOdd(myCards, board, cardString = None, boardString = None, sampleRate = 
             return myCards3, totalProb3 / n 
     else:
         return myCards0, totalProb0 / n
+
+# basically wraps the simpleDiscard method in a simpler interface
+def discard(cardStrings, boardStrings):
+    cards = [card_to_number(s) for s in cardStrings]
+    board = [card_to_number(s) for s in boardStrings]
+    
+    keep = simpleDiscard(cards, board)
+    
+    if len(keep)==0: #can't decide, just remove the first card
+        return cardStrings[0]
+    else:
+        for i in range(3):
+            if cards[i] not in keep:
+                return cardStrings[i]
     
 def simpleDiscard(cards, board, cardString = None, boardString = None):
     ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
