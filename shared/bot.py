@@ -78,7 +78,10 @@ class Bot(object):
     
     def rais(self, amount):
         amount = max(min(amount, self.maxBet), self.minBet)
-        if self.canRaise:
+        
+        if self.canRaise == None:
+            self.call()
+        elif self.canRaise:
             #print "raising:"+str(amount)
             self.socket.send("RAISE:" + str(amount) + "\n")
         else:
