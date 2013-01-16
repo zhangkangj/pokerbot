@@ -187,11 +187,7 @@ def preflopOdd(myCards, cardString = None):
         return odd
 
 def initializeFlopOdds():
-    for line in open("twoFlopOdd.csv"):
-        parts = line.strip().split(",")
-        hashCode = int(parts[0])
-        odd = float(parts[1])
-        twoFlopOdds[hashCode] = odd
+    pass
 
 def initializePreflopOdds():
     for line in open("preflopOdd.csv"):
