@@ -186,6 +186,25 @@ def initializePreflopOdds():
         odd = float(parts[1])
         preflopOdds[hashCode] = odd
 
+def initializeCardRank(n = 10):
+    odds = []
+    for line in open("preflopOdd.csv"):
+        parts = line.strip().split(",")
+        hashCode = int(parts[0])
+        odd = float(parts[1])
+        odds.append((hashCode, odd))
+        result = [[]] * n
+    interval = len(odds) / n
+    for i in range(len(odds)):
+        index = i / interval
+        result[index].append(odds[i])
+    return result
+
+preflopOdds = {}
+def preflopRangedOdd(myCard, myCardString):
+    pass
+
+
 if __name__ == '__main__':
     #initializeFlopOdds()
     #initializePreflopOdds()
@@ -197,20 +216,24 @@ if __name__ == '__main__':
     boardString =  "".join(boardString)
     
     print [number_to_card(x) for x in simpleDiscard(myCard, board)]
+    cardRank = initializeCardRank()
+    print len(cardRank)
+    print len(cardRank[0])
+    print len(cardRank[9])
     
-    start = datetime.now()
-    print flopOdd(myCard, board)
-    print "time:" + str(datetime.now() - start)
-    
-    #initializeFlopOdds()
-    
-    start = datetime.now()
-    print flopOdd(myCard, board)
-    print "time:" + str(datetime.now() - start)
-    
-    start = datetime.now()
-    print flopOddNaive(myCard, board)
-    print "time:" + str(datetime.now() - start)
+#    start = datetime.now()
+#    print flopOdd(myCard, board)
+#    print "time:" + str(datetime.now() - start)
+#    
+#    #initializeFlopOdds()
+#    
+#    start = datetime.now()
+#    print flopOdd(myCard, board)
+#    print "time:" + str(datetime.now() - start)
+#    
+#    start = datetime.now()
+#    print flopOddNaive(myCard, board)
+#    print "time:" + str(datetime.now() - start)
     
     #start = datetime.now()
     #print preflopOdd(myCard)
