@@ -25,6 +25,8 @@ class Bot(object):
         self.minBet = None
         self.maxBet = None
         self.actions = []
+        self.canRaise = None
+        self.canCheck = None
     
     def __init__(self, socket):                
         self.socket = socket
@@ -67,20 +69,35 @@ class Bot(object):
     
     #actions
     def check(self):
+        #print "checking"
         self.socket.send("CHECK\n")
         
     def call(self):
+        #print "calling"
         self.socket.send("CALL\n")
     
     def rais(self, amount):
         amount = max(min(amount, self.maxBet), self.minBet)
-        self.socket.send("RAISE:" + str(amount) + "\n")
+        
+        if self.canRaise == None:
+            self.call()
+        elif self.canRaise:
+            #print "raising:"+str(amount)
+            self.socket.send("RAISE:" + str(amount) + "\n")
+        else:
+            self.bet(amount)
     
     def bet(self, amount):
+        #print "betting:"+str(amount)
         self.socket.send("BET:" + str(amount) + "\n")
     
     def fold(self):
-        self.socket.send("FOLD\n")
+        if self.canCheck:
+            self.check()
+        else:
+            #print "folding"
+            self.socket.send("FOLD\n")
         
     def discard(self, card):
+        #print "discarding"
         self.socket.send("DISCARD:" + card + "\n")
