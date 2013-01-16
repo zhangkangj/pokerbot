@@ -105,7 +105,7 @@ def flopOdd(myCards, board, cardString = None, boardString = None, sampleRate = 
         return myCards0, totalProb0 / n
 
 # basically wraps the simpleDiscard method in a simpler interface
-def discard(cardStrings, boardStrings):
+def simpleDiscardWrapper(cardStrings, boardStrings):
     cards = [card_to_number(s) for s in cardStrings]
     board = [card_to_number(s) for s in boardStrings]
     
