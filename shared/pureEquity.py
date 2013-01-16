@@ -232,6 +232,8 @@ class preflopBot(Bot):
                 self.getRecentActions(parts)
                 self.getActions(parts)
         
+                #if can only call, self.canRaise = None
+                self.canRaise = None
                 for action in self.actions:
                     if action.startswith('CHECK'):
                         self.canCheck = True
@@ -249,20 +251,29 @@ class preflopBot(Bot):
 
                 elif numBoardCards == 3: #flop
                     print self.handID
+                    print self.numBoardCards
+                    print self.actions
+                    
                     if "DISCARD" in self.actions:
                         disCard = calculator.simpleDiscardWrapper(self.holeCards, self.boardCards)
                         self.discard(disCard)
-                        print disCard
                     else:
                         self.getLastAction()
                         self.getOppLastAction()
                         self.flop()
                 elif numBoardCards == 4: #turn
                     print self.handID
+                    print self.numBoardCards
+                    print self.actions
+                    
                     self.getLastAction()
                     self.getOppLastAction()
                     self.flop()
                 else: #river
+                    print self.handID
+                    print self.numBoardCards
+                    print self.actions                    
+                    
                     self.getLastAction()
                     self.getOppLastAction()
                     self.flop()
