@@ -4,8 +4,9 @@ Created on Jan 8, 2013
 @author: zhk
 '''
 
-class Bot(object):
+class Bot(object): 
     def initialize(self):
+        self.name = None
         self.oppName = None
         self.stackSize = None
         self.bb = None
@@ -13,18 +14,19 @@ class Bot(object):
         self.blind = None
         self.button = None
         self.holeCards = []
+        self.handID = None
         
         self.numBoardCards = None
         self.boardCards = []
         self.potSize = None
         
         self.time = None
-        self.history = None
+        self.recentActions = []
         self.minBet = None
         self.maxBet = None
         self.actions = []
- 
-    def __init__(self, socket):
+    
+    def __init__(self, socket):                
         self.socket = socket
         self.initialize()
     
@@ -66,14 +68,18 @@ class Bot(object):
     #actions
     def check(self):
         self.socket.send("CHECK\n")
+        
+    def call(self):
+        self.socket.send("CALL\n")
     
     def rais(self, amount):
-        self.socket.send("RAISE:" + amount + "\n")
+        amount = max(min(amount, self.maxBet), self.minBet)
+        self.socket.send("RAISE:" + str(amount) + "\n")
     
     def bet(self, amount):
-        self.socket.send("BET:" + amount + "\n")
+        self.socket.send("BET:" + str(amount) + "\n")
     
-    def fold(self, fold):
+    def fold(self):
         self.socket.send("FOLD\n")
         
     def discard(self, card):
