@@ -19,8 +19,8 @@ class Calculator:
     def __init__(self, buckets = 100):
         self.buckets = buckets
         bucketSize = 22100 / self.buckets
-        #self.flopKeys = np.load("dat/flopkeys.npy")
-        #self.flopValues = np.load("dat/flopvalues.npy")
+        self.flopKeys = np.load("dat/flopkeys.npy")
+        self.flopValues = np.load("dat/flopvalues.npy")
         self.preflopOdds = {}
         self.preflopRank = {}
         self.preflopBucket = [[]] * bucketSize
@@ -224,6 +224,3 @@ if __name__ == '__main__':
     print cards
     print [number_to_card(x) for x in cards]
     print "time:" + str(datetime.now() - start)
-    
-    
-    
