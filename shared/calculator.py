@@ -141,6 +141,25 @@ class Calculator:
             if counts[i] != 0:
                 result += sample(self.preflopBucket[i], counts[i])
         return result
+    
+    def turnRiverOdd(self, myCards, board, opCards = None, iterations = 10000, cardStrings = None, boardString = None):
+        myCards.sort()
+        board.sort()
+        if cardStrings == None:
+            cardStrings = [number_to_card(x) for x in myCards]
+        if boardString == None:
+            boardString = "".join([number_to_card(x) for x in board])   
+        totalProb = n = 0
+        if opCards == None:
+            return None # to be implemented for random case
+        else:
+            for opCard in opCards:
+                if opCard[0] in myCards or opCard[0] in board or opCard[1] in myCards or opCard[1] in board or opCard[2] in myCards or opCard[2] in board:
+                    continue
+                n += 1
+                opString = number_to_card(opCard[0]) + number_to_card(opCard[1])
+                totalProb += calc(cardStrings + ":" + opString, boardString, "", iterations).ev[0]
+            return totalProb / len(opCards)   
         
 def flopOddAdjusted(cards, board, cardString = None, boardString = None, iterations = 2000):
     if cardString == None:
