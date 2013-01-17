@@ -19,13 +19,13 @@ class Calculator:
     def __init__(self, buckets = 100):
         self.buckets = buckets
         bucketSize = 22100 / self.buckets
-        self.flopKeys = np.load("dat/flopkeys.npy")
-        self.flopValues = np.load("dat/flopvalues.npy")
+        #self.flopKeys = np.load("dat/flopkeys.npy")
+        #self.flopValues = np.load("dat/flopvalues.npy")
         self.preflopOdds = {}
         self.preflopRank = {}
         self.preflopBucket = [[]] * bucketSize
         pairs = [] 
-        for line in open("preflopOdd.csv"):
+        for line in open("dat/preflopOdd.csv"):
             parts = line.strip().split(",")
             hashCode = int(parts[0])
             odd = float(parts[1])
@@ -33,8 +33,8 @@ class Calculator:
             pairs.append((odd, hashCode))
         pairs.sort()
         for i in range(22100):
-            self.preflopRank[pairs[1]] = (i+1)/22100
-            self.preflopBucket[i/bucketSize].append(unhash_cards(pairs[1]))
+            self.preflopRank[pairs[i][1]] = (i+1)/22100
+            self.preflopBucket[i/bucketSize].append(unhash_cards(pairs[i][1], 3))
     
     #assume cards and board are sorted
     def twoFlopOdd(self, cards, board):
@@ -135,7 +135,7 @@ class Calculator:
         return  self.preflopRank(hashCode)
     
     def sampleCards(self, weights, size):
-        counts = weights * size
+        counts = [int(round(x * size)) for x in weights]
         result = []
         for i in range(self.buckets):
             if counts[i] != 0:
@@ -218,5 +218,12 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
 if __name__ == '__main__':
     calculator = Calculator()
     start = datetime.now()
-
+    weights = [0] * 100
+    weights[99] = 1
+    cards = calculator.sampleCards(weights, 1)[0]
+    print cards
+    print [number_to_card(x) for x in cards]
     print "time:" + str(datetime.now() - start)
+    
+    
+    
