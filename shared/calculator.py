@@ -107,6 +107,9 @@ class Calculator:
                 return myCards[1], myCards[2], totalProb3 / n 
         else:
             return myCards0[0], myCards0[1], totalProb0 / n
+
+        def preflopOdd():
+            pass
         
         
 def flopOddAdjusted(cards, board, cardString = None, boardString = None, iterations = 2000):
@@ -181,35 +184,6 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
             return [cards[0], cards[2]] 
         else:
             return [cards[0], cards[1]] 
-
-preflopOdds = {}
-def preflopOdd(myCards, cardString = None):
-    myCards.sort()
-    hashCode = hash_cards(myCards)
-    if hashCode in preflopOdds:
-        return preflopOdds[hashCode]
-    else:
-        if cardString == None:
-            cardString = [number_to_card(x) for x in myCards]
-        n = 0
-        totalProb = 0
-        for i in range(52):
-            if i in myCards:
-                continue
-            for j in range(i+1, 52):
-                if j in myCards:
-                    continue
-                for k in range(j+1, 52):
-                    if k in myCards:
-                        continue
-                    if random() > 0.005:
-                        continue
-                    n += 1
-                    board = [i, j, k]
-                    totalProb += flopOdd(myCards, board, cardString, None, 0.005)[1]
-        odd = totalProb / n
-        preflopOdds[hashCode] = odd
-        return odd
 
 flopKeys = flopValues = None
 def initializeFlopOdds():
