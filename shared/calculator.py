@@ -13,37 +13,102 @@ from shared.pbots_calc import calc
 from util import number_to_card, card_to_number, hash_cards
 from datetime import datetime
 from random import random 
+import numpy as np
 
-twoFlopOdds = {}
-def twoFlopOdd(cards, board, cardString = None, boardString = None, iterations = 100):
-    hashCode = hash_cards(cards + board)
-    if hashCode in twoFlopOdds:
-        return twoFlopOdds[hashCode]
-    else:
-        if cardString == None:
-            cardString = [number_to_card(x) for x in cards]
-        cardString = "".join(cardString)
+class Calculator:
+    def __init__(self):
+        self.flopKeys = np.load("dat/flopkeys.npy")
+        self.flopValues = np.load("dat/flopvalues.npy")
+    
+    #assume cards and board are sorted
+    def twoFlopOdd(self, cards, board):
+        hashCode = hash_cards(cards + board)
+        key = hashCode % 259891
+        index = np.searchsorted(self.flopKeys[key], hashCode)
+        return self.flopValues[key][index]
+
+    #assume cards and board are sorted
+    def flopOddNaive(self, cards, board):
+        odd1 = self.twoFlopOdd([cards[0], cards[1]], board)
+        odd2 = self.twoFlopOdd([cards[0], cards[2]], board)
+        odd3 = self.twoFlopOdd([cards[1], cards[2]], board)
+        if odd1 > odd2 and odd1 > odd3:
+            return cards[0], cards[1], odd1
+        if odd2 > odd1 and odd2 > odd3:
+            return cards[0], cards[1], odd2
+        else:
+            return cards[0], cards[1], odd3
+    
+    #assume opcards are sorted
+    def flopOdd(self, myCards, board, opCards = None, sampleSize = 300, iterations = 10000, cardStrings = None, boardString = None):
+        sampleRate = sampleSize / 15000.0
+        myCards.sort()
+        board.sort()
+        if cardStrings == None:
+            cardStrings = [number_to_card(x) for x in myCards]
         if boardString == None:
-            boardString = "".join([number_to_card(x) for x in board])   
-        odd = calc(cardString + ":xx", boardString, "", iterations).ev[0]
-        twoFlopOdds[hashCode] = odd
-        return odd
+            boardString = "".join([number_to_card(x) for x in board])    
 
-def flopOddNaive(cards, board, cardString = None, boardString = None):
-    if cardString == None:
-        cardString = [number_to_card(x) for x in cards]
-    if boardString == None:
-        boardString = "".join([number_to_card(x) for x in board])   
-    odd1 = twoFlopOdd([cards[0], cards[1]], board, cardString, boardString)
-    odd2 = twoFlopOdd([cards[0], cards[2]], board, cardString, boardString)
-    odd3 = twoFlopOdd([cards[1], cards[2]], board, cardString, boardString)
-    if odd1 > odd2 and odd1 > odd3:
-        return cardString[0] + cardString[1], odd1
-    if odd2 > odd1 and odd2 > odd3:
-        return cardString[0] + cardString[2], odd2
-    else:
-        return cardString[1] + cardString[2], odd3
- 
+        totalProb0 = totalProb1 = totalProb2 = totalProb3 = 0
+        n = 0
+        myCards0 = simpleDiscard(myCards, board)
+        myCards0String = "".join([number_to_card(x) for x in myCards0]) 
+        if len(myCards0) == 0:
+            myCards1 = cardStrings[0] + cardStrings[1]
+            myCards2 = cardStrings[0] + cardStrings[2]
+            myCards3 = cardStrings[1] + cardStrings[2]
+        if opCards == None:
+            i = 0
+            while i < 52:
+                if i in myCards or i in board:
+                    i += 1
+                    continue
+                j = i + 1
+                while j < 52:
+                    if j in myCards or j in board:
+                        j += 1
+                        continue
+                    k = j + 1
+                    while k < 52:
+                        if k in myCards or k in board or random() > sampleRate:
+                            k += 1
+                            continue
+                        n += 1
+                        opBest = self.flopOddNaive([i, j, k], board)
+                        opBestString = number_to_card(opBest[0]) + number_to_card(opBest[1])
+                        if len(myCards0) == 0:
+                            totalProb1 += calc(myCards1 + ":" + opBestString, boardString, "", iterations).ev[0]
+                            totalProb2 += calc(myCards2 + ":" + opBestString, boardString, "", iterations).ev[0]
+                            totalProb3 += calc(myCards3 + ":" + opBestString, boardString, "", iterations).ev[0] 
+                        else:
+                            totalProb0 += calc(myCards0String + ":" + opBestString, boardString, "", iterations).ev[0]  
+                        k+=1
+                    j+=1
+                i+=1
+        else:
+            for opCard in opCards:
+                if opCard[0] in myCards or opCard[0] in board or opCard[1] in myCards or opCard[1] in board or opCard[2] in myCards or opCard[2] in board:
+                    continue
+                n += 1
+                opBest = self.flopOddNaive([i, j, k], board)
+                opBestString = number_to_card(opBest[0]) + number_to_card(opBest[1])
+                if len(myCards0) == 0:
+                    totalProb1 += calc(myCards1 + ":" + opBestString, boardString, "", iterations).ev[0]
+                    totalProb2 += calc(myCards2 + ":" + opBestString, boardString, "", iterations).ev[0]
+                    totalProb3 += calc(myCards3 + ":" + opBestString, boardString, "", iterations).ev[0] 
+                else:
+                    totalProb0 += calc(myCards0 + ":" + opBestString, boardString, "", iterations).ev[0]     
+        if len(myCards0) == 0:    
+            if totalProb1 > totalProb2 and totalProb1 > totalProb3:
+                return myCards[0], myCards[1], totalProb1 / n 
+            if totalProb2 > totalProb1 and totalProb2 > totalProb3:
+                return myCards[0], myCards[2], totalProb2 / n 
+            else:
+                return myCards[1], myCards[2], totalProb3 / n 
+        else:
+            return myCards0[0], myCards0[1], totalProb0 / n
+        
+        
 def flopOddAdjusted(cards, board, cardString = None, boardString = None, iterations = 2000):
     if cardString == None:
         cardString = [number_to_card(x) for x in cards]
@@ -62,47 +127,7 @@ def flopOddAdjusted(cards, board, cardString = None, boardString = None, iterati
     if odd3 > odd1 and odd3 > odd2:
         return myCards3, odd1 * 0.819+0.142
     
-def flopOdd(myCards, board, cardString = None, boardString = None, sampleRate = 0.1):
-    myCards.sort()
-    board.sort()
-    if cardString == None:
-        cardString = [number_to_card(x) for x in myCards]
-    if boardString == None:
-        boardString = "".join([number_to_card(x) for x in board])    
-    myCards1 = cardString[0] + cardString[1]
-    myCards2 = cardString[0] + cardString[2]
-    myCards3 = cardString[1] + cardString[2]    
-    totalProb0 = totalProb1 = totalProb2 = totalProb3 = 0
-    n = 0
-    myCards0 = "".join([number_to_card(x) for x in simpleDiscard(myCards, board)]) 
-    for i in range(52):
-        if i in myCards or i in board:
-            continue
-        for j in range(i+1, 52):
-            if j in myCards or j in board:
-                continue
-            for k in range(j+1, 52):
-                if k in myCards or k in board:
-                    continue
-                if random() > sampleRate:
-                    continue
-                n += 1
-                opBest = flopOddNaive([i, j, k], board, None, boardString)[0]
-                if len(myCards0) == 0:
-                    totalProb1 += calc(myCards1 + ":" + opBest, boardString, "", 10000).ev[0]
-                    totalProb2 += calc(myCards2 + ":" + opBest, boardString, "", 10000).ev[0]
-                    totalProb3 += calc(myCards3 + ":" + opBest, boardString, "", 10000).ev[0] 
-                else:
-                    totalProb0 += calc(myCards0 + ":" + opBest, boardString, "", 10000).ev[0]
-    if len(myCards0) == 0:    
-        if totalProb1 > totalProb2 and totalProb1 > totalProb3:
-            return myCards1, totalProb1 / n 
-        if totalProb2 > totalProb1 and totalProb2 > totalProb3:
-            return myCards2, totalProb2 / n 
-        else:
-            return myCards3, totalProb3 / n 
-    else:
-        return myCards0, totalProb0 / n
+
 
 # basically wraps the simpleDiscard method in a simpler interface
 def simpleDiscardWrapper(cardStrings, boardStrings):
@@ -186,8 +211,11 @@ def preflopOdd(myCards, cardString = None):
         preflopOdds[hashCode] = odd
         return odd
 
+flopKeys = flopValues = None
 def initializeFlopOdds():
-    pass
+    global flopKeys, flopValues
+    flopKeys = np.load("dat/keys.npy")
+    flopValues = np.load("dat/values.npy")
 
 def initializePreflopOdds():
     for line in open("preflopOdd.csv"):

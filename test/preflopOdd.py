@@ -12,6 +12,9 @@ from calculator import twoFlopOdd, twoFlopOdds, preflopOdd, initializePreflopOdd
 import sys
 
 if __name__ == '__main__':
+    flopKeys = np.load("dat/keys.npy")
+    flopValues = np.load("dat/values.npy")
+
 #    for line in open("twoFlopOddHashed.csv"):
 #        parts = line.strip().split(",")
 #        hashCode = int(parts[0])

@@ -7,29 +7,29 @@ Created on Jan 12, 2013
 from datetime import datetime
 from random import randrange
 import numpy as np
+from shared.util import draw_cards
 
-
-#keys = np.arange(2600, dtype = np.uint32)
-#values = np.arange(2600, dtype = np.float16)
-#start = datetime.now()
-#for i in range(10000):
-#    key = randrange(2600)
-#    index = np.searchsorted(keys, key)
-#    value = values[index]
-#
-#print "time:" + str(datetime.now() - start)
-
-matrix = np.zeros((1000,1000), dtype = np.uint32)
 start = datetime.now()
-for i in range(1000):
-    row = matrix[i:]
-    for j in row:
-        j = j + 1
+for n in range(1000):
+    draw_cards(3, True)
 print "time:" + str(datetime.now() - start)
 
 start = datetime.now()
-for i in range(1000):
-    col = matrix[:i]
-    for j in col:
-        j = j + 1
+i = 0
+while i < 52:
+    j = i + 1
+    while j < 52:
+        k = j + 1
+        while k < 0:
+            pass
+            k+=1
+        j+=1
+    i+=1
+print "time:" + str(datetime.now() - start)
+
+start = datetime.now()
+for i in range(52):
+    for j in range(i+1,52):
+        for k in range(j+1,52):
+            pass
 print "time:" + str(datetime.now() - start)
