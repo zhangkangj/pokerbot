@@ -42,35 +42,33 @@ def merge():
             out.write(line)
     print n
     
-def process():
-    keys = np.arange(25989600, dtype = np.uint32)
-    values = np.arange(25989600, dtype = np.float16)
+def process(bucketNumber = 259891):
+    keys = np.arange(bucketNumber, dtype = object)
+    values = np.arange(bucketNumber, dtype = object)
+    keyMap = {}
+    valueMap = {}
     n = 0
     for line in open("dat/twoFlopOdd.csv"):
         parts = line.strip().split(",")
         hashCode = int(parts[0])
         odd = float(parts[1])
-        keys[n] = hashCode
-        values[n] = odd
+        key = odd % 259891
+        if key not in keyMap:
+            keyMap[key] = [hashCode]
+            valueMap[key] = [odd]
+        else:
+            keyMap[key].append(hashCode)
+            valueMap[key].append(odd)
         n += 1
     print n
+    for i in range(bucketNumber):
+        keys[i] = np.array(keyMap[i], dtype = np.uint32)
+        values[i] = np.array(valueMap[i], dtype = np.float32)
     np.save("dat/keys.npy", keys)
-    np.save("dat/values.npy", values)
+    np.save("dat/keys.npy", values)
     
 if __name__ == '__main__':
-    keys = np.load("dat/keys.npy")
-    slots = [0] * 9800
-    previous = 0
-    for i in keys:
-        if i < previous:
-            print "error"
-        previous = i
-        slot = i % 9800
-        slots[slot] += 1
-        if i%100000 == 0:
-            print i
-    for slot in slots:
-        print slot 
+    process()
 #    initializeFlopOdds()
 #    print(len(twoFlopOdds))
 #    cards = draw_cards(5)
