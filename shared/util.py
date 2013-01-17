@@ -78,3 +78,16 @@ def hash_cards(cards):
     for card in cards:
         hashCode = hashCode * 52 + card
     return hashCode
+
+def unhash_cards(hashCode, n):
+    result = []
+    i = 0
+    while i < n:
+        result.append(hashCode % 52)
+        hashCode = hashCode / 52
+        i += 1
+    result.reverse()
+    return result
+
+if __name__ == '__main__':
+    pass

@@ -10,15 +10,31 @@ preflopOdd(): A fast equity preflop calculator using a precomputed table. Call i
 '''
 
 from shared.pbots_calc import calc
-from util import number_to_card, card_to_number, hash_cards
+from util import number_to_card, card_to_number, hash_cards, unhash_cards
 from datetime import datetime
-from random import random 
+from random import random, sample
 import numpy as np
 
 class Calculator:
-    def __init__(self):
+    def __init__(self, buckets = 100):
+        self.buckets = buckets
+        bucketSize = 22100 / self.buckets
         self.flopKeys = np.load("dat/flopkeys.npy")
         self.flopValues = np.load("dat/flopvalues.npy")
+        self.preflopOdds = {}
+        self.preflopRank = {}
+        self.preflopBucket = [[]] * bucketSize
+        pairs = [] 
+        for line in open("preflopOdd.csv"):
+            parts = line.strip().split(",")
+            hashCode = int(parts[0])
+            odd = float(parts[1])
+            self.preflopOdds[hashCode] = odd
+            pairs.append((odd, hashCode))
+        pairs.sort()
+        for i in range(22100):
+            self.preflopRank[pairs[1]] = (i+1)/22100
+            self.preflopBucket[i/bucketSize].append(unhash_cards(pairs[1]))
     
     #assume cards and board are sorted
     def twoFlopOdd(self, cards, board):
@@ -108,9 +124,23 @@ class Calculator:
         else:
             return myCards0[0], myCards0[1], totalProb0 / n
 
-        def preflopOdd():
-            pass
-        
+    def preflopOdd(self, cards):
+        cards.sort()
+        hashCode = hash_cards(cards)
+        return  self.preflopOdd(hashCode)
+
+    def preflopRank(self, cards):
+        cards.sort()
+        hashCode = hash_cards(cards)
+        return  self.preflopRank(hashCode)
+    
+    def sampleCards(self, weights, size):
+        counts = weights * size
+        result = []
+        for i in range(self.buckets):
+            if counts[i] != 0:
+                result += sample(self.preflopBucket[i], counts[i])
+        return result
         
 def flopOddAdjusted(cards, board, cardString = None, boardString = None, iterations = 2000):
     if cardString == None:
@@ -185,68 +215,8 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
         else:
             return [cards[0], cards[1]] 
 
-flopKeys = flopValues = None
-def initializeFlopOdds():
-    global flopKeys, flopValues
-    flopKeys = np.load("dat/keys.npy")
-    flopValues = np.load("dat/values.npy")
-
-def initializePreflopOdds():
-    for line in open("preflopOdd.csv"):
-        parts = line.strip().split(",")
-        hashCode = int(parts[0])
-        odd = float(parts[1])
-        preflopOdds[hashCode] = odd
-
-def initializeCardRank(n = 10):
-    odds = []
-    for line in open("preflopOdd.csv"):
-        parts = line.strip().split(",")
-        hashCode = int(parts[0])
-        odd = float(parts[1])
-        odds.append((hashCode, odd))
-        result = [[]] * n
-    interval = len(odds) / n
-    for i in range(len(odds)):
-        index = i / interval
-        result[index].append(odds[i])
-    return result
-
-preflopOdds = {}
-def preflopRangedOdd(myCard, myCardString):
-    pass
-
-
 if __name__ == '__main__':
-    #initializeFlopOdds()
-    #initializePreflopOdds()
-    myCardString = ["Ac", "6s", "5d"]
-    boardString = ["Ah", "5c", "2h"]
-    print myCardString, boardString
-    myCard = [card_to_number(x) for x in myCardString]
-    board = [card_to_number(x) for x in boardString]
-    boardString =  "".join(boardString)
-    
-    print [number_to_card(x) for x in simpleDiscard(myCard, board)]
-    cardRank = initializeCardRank()
-    print len(cardRank)
-    print len(cardRank[0])
-    print len(cardRank[9])
-    
-#    start = datetime.now()
-#    print flopOdd(myCard, board)
-#    print "time:" + str(datetime.now() - start)
-#    
-#    #initializeFlopOdds()
-#    
-#    start = datetime.now()
-#    print flopOdd(myCard, board)
-#    print "time:" + str(datetime.now() - start)
-#    
-#    start = datetime.now()
-#    print flopOddNaive(myCard, board)
-#    print "time:" + str(datetime.now() - start)
-    
-    #start = datetime.now()
-    #print preflopOdd(myCard)
-    #print "time:" + str(datetime.now() - start)
+    calculator = Calculator()
+    start = datetime.now()
+
+    print "time:" + str(datetime.now() - start)
