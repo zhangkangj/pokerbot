@@ -180,7 +180,7 @@ class preflopBot(Bot):
             action = self.recentActions[i]
             if action.endswith(self.name):
                 self.LastAction = action[:-len(self.name)-1]        
-        
+                
     def run(self, input_socket):
         f_in = input_socket.makefile()
         while True:
@@ -250,10 +250,6 @@ class preflopBot(Bot):
                     self.preflop()
 
                 elif numBoardCards == 3: #flop
-                    print self.handID
-                    print self.numBoardCards
-                    print self.actions
-                    
                     if "DISCARD" in self.actions:
                         disCard = calculator.simpleDiscardWrapper(self.holeCards, self.boardCards)
                         self.discard(disCard)
@@ -261,19 +257,11 @@ class preflopBot(Bot):
                         self.getLastAction()
                         self.getOppLastAction()
                         self.flop()
-                elif numBoardCards == 4: #turn
-                    print self.handID
-                    print self.numBoardCards
-                    print self.actions
-                    
+                elif numBoardCards == 4: #turn                    
                     self.getLastAction()
                     self.getOppLastAction()
                     self.flop()
-                else: #river
-                    print self.handID
-                    print self.numBoardCards
-                    print self.actions                    
-                    
+                else: #river                    
                     self.getLastAction()
                     self.getOppLastAction()
                     self.flop()
@@ -402,8 +390,6 @@ class preflopBot(Bot):
                     self.check()
             else:
                 self.fold()
-
-
     def boardIsSafe(self):
         bcValuesSorted = self.getCardValues(self.boardCards)
         bcValuesSorted.sort()
@@ -510,7 +496,6 @@ class preflopBot(Bot):
             if v+1 in values and v+2 in values and v+3 in values:
                 return True
         return False
-
 
     def haveFullHouse(self):
         if self.havePair() == 1 and self.haveTrips():
