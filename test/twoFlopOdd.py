@@ -50,6 +50,7 @@ def process(bucketNumber = 259891):
     n = 0
     for line in open("dat/twoFlopOdd.csv"):
         parts = line.strip().split(",")
+        print parts
         hashCode = int(parts[0])
         odd = float(parts[1])
         key = odd % 259891
@@ -65,7 +66,7 @@ def process(bucketNumber = 259891):
         keys[i] = np.array(keyMap[i], dtype = np.uint32)
         values[i] = np.array(valueMap[i], dtype = np.float32)
     np.save("dat/keys.npy", keys)
-    np.save("dat/keys.npy", values)
+    np.save("dat/values.npy", values)
     
 if __name__ == '__main__':
     process()
