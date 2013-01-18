@@ -3,10 +3,6 @@ Created on Jan 10, 2013
 
 @author: zhk
 
-useful functions:
-flopOddAdjusted(): A simple fast flop equity calculator adjusted for opponent hand strength using linear regression. Takes a list of hand cards and a list of board cards (converted to numbers) and returns cards to keep and equity
-preflopOdd(): A fast equity preflop calculator using a precomputed table. Call initializePreflopOdds() to initialize. Takes a list of hand cards (converted to numbers) and returns equity
-
 '''
 
 from shared.pbots_calc import calc
@@ -103,19 +99,21 @@ class Calculator:
                     j+=1
                 i+=1
         else:
+            count = 0
             for opCard in opCards:
                 if opCard[0] in myCards or opCard[0] in board or opCard[1] in myCards or opCard[1] in board or opCard[2] in myCards or opCard[2] in board:
+                    count +=1
                     continue
                 n += 1
-                opBest = self.flopOddNaive([i, j, k], board)
+                opBest = self.flopOddNaive(opCard, board)
                 opBestString = number_to_card(opBest[0]) + number_to_card(opBest[1])
                 if len(myCards0) == 0:
                     totalProb1 += calc(myCards1 + ":" + opBestString, boardString, "", iterations).ev[0]
                     totalProb2 += calc(myCards2 + ":" + opBestString, boardString, "", iterations).ev[0]
                     totalProb3 += calc(myCards3 + ":" + opBestString, boardString, "", iterations).ev[0] 
                 else:
-                    totalProb0 += calc(myCards0 + ":" + opBestString, boardString, "", iterations).ev[0]     
-        if len(myCards0) == 0:    
+                    totalProb0 += calc(myCards0String + ":" + opBestString, boardString, "", iterations).ev[0]     
+        if len(myCards0) == 0:
             if totalProb1 > totalProb2 and totalProb1 > totalProb3:
                 return myCards[0], myCards[1], totalProb1 / n 
             if totalProb2 > totalProb1 and totalProb2 > totalProb3:
