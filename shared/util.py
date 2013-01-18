@@ -121,3 +121,13 @@ if __name__ == '__main__':
 #    cardValuesArray = [[13, 14, 15], [14, 40, 4], [50, 30, 31], [30, 50, 31], [30, 31, 50]]
 #    for cardValues in cardValuesArray:
 #        print reduce_hand(cardValues)
+    cards = draw_cards(3, True)
+    print [number_to_card(x) for x in cards]
+    print [number_to_card(x) for x in reduce_hand(cards)]
+    map = {}
+    for i in range(52):
+        for j in range(i+1,52):
+            for k in range(j+1,52):
+                hashCode = hash_cards(reduce_hand([i,j,k]))
+                map[hashCode] = True
+    print len(map)
