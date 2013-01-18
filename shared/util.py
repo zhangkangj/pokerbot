@@ -25,12 +25,19 @@ def reduce_hand(cardValues):
     elif suits[0]!=suits[1] and suits[0]!=suits[2] and suits[1]!=suits[2]:
         offsets = [0, 13, 26]
     else:
-        if suits[1]==suits[2]:
-            offsets = [0, 13, 13]
-        elif suits[0]==suits[2]:
-            offsets = [0, 13, 0]
+        if numbers[0] == numbers[1]:
+            offsets = [13, 0, 0]
+        elif numbers[0] == numbers[2]:
+            offsets = [13, 0, 0]
+        elif numbers[1] == numbers[2]:
+            offsets = [0, 13, 0] 
         else:
-            offsets = [0, 0, 13]
+            if suits[1]==suits[2]:
+                offsets = [13, 0, 0]
+            elif suits[0]==suits[2]:
+                offsets = [0, 13, 0]
+            elif suits[0]==suits[1]:
+                offsets = [0, 0, 13]
     
     return [number+offset for (number, offset) in zip(numbers, offsets)]
 
@@ -125,10 +132,10 @@ if __name__ == '__main__':
     cards = draw_cards(3, True)
     print [number_to_card(x) for x in cards]
     print [number_to_card(x) for x in reduce_hand(cards)]
-    map = {}
+    cardSet = {}
     for i in range(52):
         for j in range(i+1,52):
             for k in range(j+1,52):
                 hashCode = hash_cards(reduce_hand([i,j,k]))
-                map[hashCode] = True
-    print len(map)
+                cardSet[hashCode] = True
+    print len(cardSet)
