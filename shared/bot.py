@@ -73,6 +73,9 @@ class Bot(object):
             elif word == "GETACTION":
                 self.potSize = int(parts[1])
                 self.numBoardCards = int(parts[2])
+                
+                
+                
                 if self.numBoardCards == 0: #preflop
                     self.preflop()
                 elif self.numBoardCards == 3: #flop
