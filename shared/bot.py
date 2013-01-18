@@ -28,8 +28,6 @@ class Bot(object):
         self.actions = []
         self.minBet = None
         self.maxBet = None
-        self.canRaise = None
-        self.canCheck = None
     
     def __init__(self, socket):                
         self.socket = socket
@@ -39,73 +37,83 @@ class Bot(object):
     def run(self, input_socket):
         f_in = input_socket.makefile()
         while True:
-            data = f_in.readline().strip()
-            if not data:
+            message = f_in.readline().strip()
+            if not message:
                 print "Gameover, engine disconnected."
                 break
-
-            print data
-            parts = data.split()
-            word = parts[0]
-            
-            if word == "NEWGAME":
-                self.name = parts[1]
-                self.oppName = parts[2]
-                self.stackSize = int(parts[3])
-                self.bb = int(parts[4])
-            elif word == "NEWHAND":
-                self.handID = int(parts[1])
-                if parts[2] == "false":
-                    self.button = False
-                else:
-                    self.button = True
-                self.position = self.button
-                self.holeCards = [parts[3], parts[4], parts[5]]
-                self.myBank.append(int(parts[6]))
-                self.time = float(parts[8])
-                self.numBoardCards = 0
-                self.recentActions = []
-                self.oppLastAction = None
-            elif word == "HANDOVER": #if opp folds and we haven't checked the board, could read the board here
-                pass
-            elif word == "KEYVALUE": #can ignore unless we are storing opp's info between games
-                pass
-            elif word == "REQUESTKEYVALUES":
-                self.socket.send("FINISH\n")
-            elif word == "GETACTION":
-                self.potSize = int(parts[1])
-                self.numBoardCards = int(parts[2])
-                numLastActions = int(parts[3+self.numBoardCards])
-                # better parser
-                self.lastActions = parts[4+self.numBoardCards:(4+self.numBoardCards)+numLastActions]
-                for action in self.lastActions:
-                    if action.endswith(self.oppName):
-                        self.oppLastAction = action[0:(len(action)-len(self.oppName)-1)]
-                offset = 4 + self.numBoardCards + numLastActions
-                numLegalActions = int(parts[offset])
-                #better parser
-                self.actions = parts[1+offset:1+offset+numLegalActions]
-                for action in self.actions:
-                    if action.startswith("RAISE") or action.startswith("BET"):
-                        temp = action.split(":")
-                        self.minBet = int(temp[1])
-                        self.maxBet = int(temp[2])
-                self.time = float(parts[1+offset+numLegalActions]) 
-                
-                if self.numBoardCards == 0: #preflop
-                    self.preflop()
-                elif self.numBoardCards == 3: #flop
-                    if "DISCARD" in self.actions:
-                        self.discard()
-                    else:
-                        self.flop()
-                elif self.numBoardCards == 4: #turn                    
-                    self.turn()
-                else: #river                    
-                    self.river()
-            
+            print message
+            self.handleMessage(message)
         # Clean up the socket.
         self.socket.close()
+    
+    def handleMessage(self, message):
+        parts = message.split()
+        word = parts[0]
+        if word == "NEWGAME":
+            self.name = parts[1]
+            self.oppName = parts[2]
+            self.stackSize = int(parts[3])
+            self.bb = int(parts[4])
+        elif word == "NEWHAND":
+            self.handID = int(parts[1])
+            if parts[2] == "false":
+                self.button = False
+            else:
+                self.button = True
+            self.position = self.button
+            self.holeCards = [parts[3], parts[4], parts[5]]
+            self.myBank.append(int(parts[6]))
+            self.time = float(parts[8])
+            self.numBoardCards = 0
+            self.recentActions = []
+            self.oppLastAction = None
+        elif word == "HANDOVER": #if opp folds and we haven't checked the board, could read the board here
+            pass
+        elif word == "KEYVALUE": #can ignore unless we are storing opp's info between games
+            pass
+        elif word == "REQUESTKEYVALUES":
+            self.socket.send("FINISH\n")
+        elif word == "GETACTION":
+            self.potSize = int(parts[1])
+            self.numBoardCards = int(parts[2])
+            numLastActions = int(parts[3+self.numBoardCards])
+            lastActionsString = parts[4+self.numBoardCards:(4+self.numBoardCards)+numLastActions] 
+            self.lastActions = []
+            for actionString in lastActionsString:
+                temp = actionString.split(":")
+                if len(temp) == 2:
+                    self.lastActions.append((temp[0], temp[1]))
+                    if temp[1] == self.oppName:
+                        self.oppLastAction = (temp[0])
+                else:
+                    self.lastActions.append((temp[0], int(temp[1]), temp[2]))
+                    if temp[2] == self.oppName:
+                        self.oppLastAction = (temp[0], temp[1])
+
+            offset = 4 + self.numBoardCards + numLastActions
+            numLegalActions = int(parts[offset])
+            actionsString = parts[1+offset:1+offset+numLegalActions]
+            
+            self.actions = []
+            for actionString in actionsString:
+                temp = actionString.split(":")
+                self.actions.append(temp[0])
+                if temp[0] == "RAISE" or temp[0] == "BET":
+                    self.minBet = int(temp[1])
+                    self.maxBet = int(temp[2])
+            self.time = float(parts[2+offset+numLegalActions]) 
+            
+            if self.numBoardCards == 0: #preflop
+                self.preflop()
+            elif self.numBoardCards == 3: #flop
+                if "DISCARD" in self.actions:
+                    self.discard()
+                else:
+                    self.flop()
+            elif self.numBoardCards == 4: #turn                    
+                self.turn()
+            else: #river                    
+                self.river()
    
     # public methods
     def preflop(self):
@@ -162,5 +170,4 @@ class Bot(object):
         
     def discard(self, card):
         #print "discarding"
-        self.myLastAction = "DISCARD"
         self.socket.send("DISCARD:" + card + "\n")

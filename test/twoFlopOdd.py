@@ -4,7 +4,6 @@ Created on Jan 16, 2013
 @author: oo
 '''
 
-from shared.calculator import initializeFlopOdds, flopKeys, flopValues 
 from shared.pbots_calc import calc
 from shared.util import number_to_card, card_to_number, draw_cards, hash_cards
 from datetime import datetime

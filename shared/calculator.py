@@ -21,21 +21,22 @@ class Calculator:
         bucketSize = 22100 / self.buckets
         self.flopKeys = np.load("dat/flopkeys.npy")
         self.flopValues = np.load("dat/flopvalues.npy")
-        self.preflopOdds = {}
-        self.preflopRank = {}
-        self.preflopBucket = [[]] * bucketSize
+        self.preflopOddTable = {}
+        self.preflopRankTable = {}
+        self.preflopBucket = [[] for i in range(buckets)] 
         pairs = [] 
         for line in open("dat/preflopOdd.csv"):
             parts = line.strip().split(",")
             hashCode = int(parts[0])
             odd = float(parts[1])
-            self.preflopOdds[hashCode] = odd
+            self.preflopOddTable[hashCode] = odd
             pairs.append((odd, hashCode))
         pairs.sort()
+
         for i in range(22100):
-            self.preflopRank[pairs[i][1]] = (i+1)/22100
+            self.preflopRankTable[pairs[i][1]] = (i+1)/22100.0
             self.preflopBucket[i/bucketSize].append(unhash_cards(pairs[i][1], 3))
-    
+
     #assume cards and board are sorted
     def twoFlopOdd(self, cards, board):
         hashCode = hash_cards(cards + board)
@@ -127,21 +128,13 @@ class Calculator:
     def preflopOdd(self, cards):
         cards.sort()
         hashCode = hash_cards(cards)
-        return  self.preflopOdd(hashCode)
+        return self.preflopOddTable[hashCode]
 
     def preflopRank(self, cards):
         cards.sort()
         hashCode = hash_cards(cards)
-        return  self.preflopRank(hashCode)
-    
-    def sampleCards(self, weights, size):
-        counts = [int(round(x * size)) for x in weights]
-        result = []
-        for i in range(self.buckets):
-            if counts[i] != 0:
-                result += sample(self.preflopBucket[i], counts[i])
-        return result
-    
+        return  self.preflopRankTable[hashCode]
+
     def turnRiverOdd(self, myCards, board, opCards = None, iterations = 10000, cardStrings = None, boardString = None):
         myCards.sort()
         board.sort()
@@ -160,6 +153,17 @@ class Calculator:
                 opString = number_to_card(opCard[0]) + number_to_card(opCard[1])
                 totalProb += calc(cardStrings + ":" + opString, boardString, "", iterations).ev[0]
             return totalProb / len(opCards)   
+        
+            
+    def sampleCards(self, weights, size):
+        counts = [int(round(x * size)) for x in weights]
+        result = []
+        for i in range(self.buckets):
+            if counts[i] != 0:
+                population = self.preflopBucket[i]
+                result += sample(population, counts[i])
+        return result
+    
         
 def flopOddAdjusted(cards, board, cardString = None, boardString = None, iterations = 2000):
     if cardString == None:
@@ -240,6 +244,7 @@ if __name__ == '__main__':
     weights = [0] * 100
     weights[99] = 1
     cards = calculator.sampleCards(weights, 1)[0]
-    print cards
-    print [number_to_card(x) for x in cards]
+    print cards, [number_to_card(x) for x in cards]
+    print calculator.preflopOdd(cards), calculator.preflopRank(cards)
+    
     print "time:" + str(datetime.now() - start)

@@ -63,19 +63,31 @@ def computeRangedPreFlopOdd(index = 0, opCards = None):
                     preflopOdd[preflopOdd] = odd
                 out.write(str(hashCode) + "," + str(odd) + "\n")
                 out.flush()
-                
+
+def merge():
+    n = 0
+    out = open("dat/preflopOdd.csv", "w")
+    for i in range(1,9):
+        f = open("dat/preflopOdd" + str(i) + ".csv")
+        for line in f.readlines():
+            n += 1
+            out.write(line)
+    print n
+                    
 if __name__ == '__main__':
+
     calculator = Calculator()
-#    start = datetime.now()
-#    for i in range(1):
-#        cards = draw_cards(3, True)
-#        myCards = cards[0:3]
-#        preflopOdd(myCards, 300, None)
-#    print "time:" + str(datetime.now() - start)
+    start = datetime.now()
+#    cards = draw_cards(3, True)
+    cards = [card_to_number(x) for x in ["Ah", "Ac", "2s"]]
+    print calculator.preflopOdd(cards)
+    print calculator.preflopRank(cards)
+    #print preflopOdd(myCards, None, 400)
+    print "time:" + str(datetime.now() - start)
 
 #    index = 0
 #    weights = [0] * 100
 #    for i in range(index*10, index*10+10):
 #        weights[i] = 0.1
 #    opCards = calculator.sampleCards(weights, 400)
-#    print computePreFlopOdd(index, opCards)
+#    print computeRangedPreFlopOdd(index, opCards)
