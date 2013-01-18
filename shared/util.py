@@ -6,6 +6,33 @@ Created on Jan 10, 2013
 
 from random import sample
 
+def reduce_hand_pair(cardValues1, cardValues2):
+    pass
+
+'''
+takes three card values and returns its equivalence class
+e.g., reduce_hand([13,14,15]) = [0,1,2]
+'''
+def reduce_hand(cardValues):
+    suits = [value / 13 for value in cardValues]
+    numbers = [value % 13 for value in cardValues]
+    
+    offsets = None
+    
+    if suits[0]==suits[1] and suits[0]==suits[2] and suits[1]==suits[2]:
+        offsets = [0, 0, 0]
+    elif suits[0]!=suits[1] and suits[0]!=suits[2] and suits[1]!=suits[2]:
+        offsets = [0, 13, 26]
+    else:
+        if suits[1]==suits[2]:
+            offsets = [0, 13, 13]
+        elif suits[0]==suits[2]:
+            offsets = [0, 13, 0]
+        else:
+            offsets = [0, 0, 13]
+    
+    return [number+offset for (number, offset) in zip(numbers, offsets)]
+
 '''
 2 0, ... A 12
 0 spade, 1 heart, 2 diamond, 3 club
@@ -91,3 +118,7 @@ def unhash_cards(hashCode, n):
 
 if __name__ == '__main__':
     pass
+#testing reduce_hand()
+#    cardValuesArray = [[13, 14, 15], [14, 40, 4], [50, 30, 31], [30, 50, 31], [30, 31, 50]]
+#    for cardValues in cardValuesArray:
+#        print reduce_hand(cardValues)
