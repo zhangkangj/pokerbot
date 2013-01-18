@@ -134,12 +134,12 @@ class Bot(object):
     #actions
     def check(self):
         #print "checking"
-        self.myLastAction = "CHECK"
+        self.myLastAction = ("CHECK")
         self.socket.send("CHECK\n")
         
     def call(self):
         #print "calling"
-        self.myLastAction = "CALL"
+        self.myLastAction = ("CALL")
         self.socket.send("CALL\n")
     
     def rais(self, amount):
@@ -149,7 +149,7 @@ class Bot(object):
             print "Raise Exception" 
         elif self.canRaise:
             #print "raising:"+str(amount)
-            self.myLastAction = "RAISE:" + str(amount)
+            self.myLastAction = ("RAISE:", amount)
             self.socket.send("RAISE:" + str(amount) + "\n")
         else:
             print "Raise Exception"
@@ -157,7 +157,7 @@ class Bot(object):
     
     def bet(self, amount):
         #print "betting:"+str(amount)
-        self.myLastAction = "BET:" + str(amount)
+        self.myLastAction = ("BET:", amount)
         self.socket.send("BET:" + str(amount) + "\n")
     
     def fold(self):
@@ -165,7 +165,7 @@ class Bot(object):
             self.check()
         else:
             #print "folding"
-            self.myLastAction = "FOLD"
+            self.myLastAction = ("FOLD")
             self.socket.send("FOLD\n")
         
     def discard(self, card):
