@@ -14,9 +14,10 @@ takes three card values and returns its equivalence class
 e.g., reduce_hand([13,14,15]) = [0,1,2]
 '''
 def reduce_hand(cardValues):
-    suits = [value / 13 for value in cardValues]
-    numbers = [value % 13 for value in cardValues]
-    
+    cards = [(x%13, x/13) for x in cardValues]
+    cards.sort()
+    numbers = [x[0] for x in cards]
+    suits = [x[1] for x in cards]    
     offsets = None
     
     if suits[0]==suits[1] and suits[0]==suits[2] and suits[1]==suits[2]:
