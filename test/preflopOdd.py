@@ -44,7 +44,7 @@ def computePreFlopOdd(index = 0, start = 0, end = 52):
                     odd = preflopOdds[hashCodeReduced]
                 else:
                     odd = preflopOdd([i,j,k], None, 1000)
-                    preflopOdd[preflopOdd] = odd
+                    preflopOdds[hashCodeReduced] = odd
                 out.write(str(hashCode) + "," + str(odd) + "\n")
                 out.flush()
                 
@@ -61,7 +61,7 @@ def computeRangedPreFlopOdd(index = 0, opCards = None):
                     odd = preflopOdds[hashCodeReduced]
                 else:
                     odd = preflopOdd([i,j,k], opCards, 400)
-                    preflopOdds[preflopOdd] = odd
+                    preflopOdds[hashCodeReduced] = odd
                 out.write(str(hashCode) + "," + str(odd) + "\n")
                 out.flush()
 
@@ -90,6 +90,6 @@ if __name__ == '__main__':
 #    weights = [0] * 100
 #    for i in range(index*10, index*10+10):
 #        weights[i] = 0.1
-#    opCards = calculator.sampleCards(weights, 500)
+#    opCards = calculator.sampleCards(weights, 600)
 #    print computeRangedPreFlopOdd(index, opCards)
     computePreFlopOdd()

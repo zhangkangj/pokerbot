@@ -153,7 +153,7 @@ class Calculator:
             return totalProb / len(opCards)   
         
             
-    def sampleCards(self, weights, size):
+    def preflopCardsByRank(self, weights, size):
         counts = [int(round(x * size)) for x in weights]
         result = []
         for i in range(self.buckets):
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     start = datetime.now()
     weights = [0] * 100
     weights[99] = 1
-    cards = calculator.sampleCards(weights, 1)[0]
+    cards = calculator.preflopCardsByRank(weights, 1)[0]
     print cards, [number_to_card(x) for x in cards]
     print calculator.preflopOdd(cards), calculator.preflopRank(cards)
     

@@ -16,6 +16,18 @@ It is meant as an example of how a pokerbot should communicate with the engine.
 class Player(Bot):
     pass
 
+    def preflop(self):
+        self.check()
+    
+    def flop(self):
+        self.check()
+    
+    def turn(self):
+        self.check()
+    
+    def river(self):
+        self.check()
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A Pokerbot.', add_help=False, prog='pokerbot')
     parser.add_argument('-h', dest='host', type=str, default='localhost', help='Host to connect to, defaults to localhost')
