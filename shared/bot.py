@@ -22,6 +22,8 @@ class Bot(object):
         
         self.time = None
         self.recentActions = []
+        self.lastActions = None
+        self.myLastAction = None
         self.oppLastAction = None
         self.actions = []
         self.minBet = None
@@ -32,7 +34,7 @@ class Bot(object):
     def __init__(self, socket):                
         self.socket = socket
         self.initialize()
-    
+        
     # private methods
     def run(self, input_socket):
         f_in = input_socket.makefile()
@@ -73,8 +75,22 @@ class Bot(object):
             elif word == "GETACTION":
                 self.potSize = int(parts[1])
                 self.numBoardCards = int(parts[2])
-                
-                
+                numLastActions = int(parts[3+self.numBoardCards])
+                # better parser
+                self.lastActions = parts[4+self.numBoardCards:(4+self.numBoardCards)+numLastActions]
+                for action in self.lastActions:
+                    if action.endswith(self.oppName):
+                        self.oppLastAction = action[0:(len(action)-len(self.oppName)-1)]
+                offset = 4 + self.numBoardCards + numLastActions
+                numLegalActions = int(parts[offset])
+                #better parser
+                self.actions = parts[1+offset:1+offset+numLegalActions]
+                for action in self.actions:
+                    if action.startswith("RAISE") or action.startswith("BET"):
+                        temp = action.split(":")
+                        self.minBet = int(temp[1])
+                        self.maxBet = int(temp[2])
+                self.time = float(parts[1+offset+numLegalActions]) 
                 
                 if self.numBoardCards == 0: #preflop
                     self.preflop()
@@ -93,16 +109,16 @@ class Bot(object):
    
     # public methods
     def preflop(self):
-        pass
+        self.check()
     
     def flop(self):
-        pass
+        self.check()
     
     def turn(self):
-        pass
+        self.check()
     
     def river(self):
-        pass
+        self.check()
     
     def showdown(self):
         pass
@@ -110,24 +126,30 @@ class Bot(object):
     #actions
     def check(self):
         #print "checking"
+        self.myLastAction = "CHECK"
         self.socket.send("CHECK\n")
         
     def call(self):
         #print "calling"
+        self.myLastAction = "CALL"
         self.socket.send("CALL\n")
     
     def rais(self, amount):
         amount = max(min(amount, self.maxBet), self.minBet)
         if self.canRaise == None:
             self.call()
+            print "Raise Exception" 
         elif self.canRaise:
             #print "raising:"+str(amount)
+            self.myLastAction = "RAISE:" + str(amount)
             self.socket.send("RAISE:" + str(amount) + "\n")
         else:
+            print "Raise Exception"
             self.bet(amount)
     
     def bet(self, amount):
         #print "betting:"+str(amount)
+        self.myLastAction = "BET:" + str(amount)
         self.socket.send("BET:" + str(amount) + "\n")
     
     def fold(self):
@@ -135,8 +157,10 @@ class Bot(object):
             self.check()
         else:
             #print "folding"
+            self.myLastAction = "FOLD"
             self.socket.send("FOLD\n")
         
     def discard(self, card):
         #print "discarding"
+        self.myLastAction = "DISCARD"
         self.socket.send("DISCARD:" + card + "\n")
