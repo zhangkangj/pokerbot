@@ -117,8 +117,7 @@ def unhash_cards(hashCode, n):
     return result
 
 if __name__ == '__main__':
-    pass
 #testing reduce_hand()
-#    cardValuesArray = [[13, 14, 15], [14, 40, 4], [50, 30, 31], [30, 50, 31], [30, 31, 50]]
-#    for cardValues in cardValuesArray:
-#        print reduce_hand(cardValues)
+    cardValuesArray = [[13, 14, 15], [14, 40, 4], [50, 30, 31], [30, 50, 31], [30, 31, 50]]
+    for cardValues in cardValuesArray:
+        print reduce_hand(cardValues)
