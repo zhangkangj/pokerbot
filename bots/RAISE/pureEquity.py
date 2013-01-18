@@ -1,9 +1,9 @@
-from bot import Bot
+from shared.bot import Bot
 
 import argparse
 import socket
-import calculator
-import util
+import shared.calculator
+import shared.util
 
 from datetime import datetime
 
