@@ -10,8 +10,8 @@ class Bot(object):
         self.oppName = None
         self.stackSize = None
         self.bb = None
+        self.myBank = []
         
-        self.blind = None
         self.button = None
         self.holeCards = []
         self.handID = None
@@ -22,9 +22,10 @@ class Bot(object):
         
         self.time = None
         self.recentActions = []
+        self.oppLastAction = None
+        self.actions = []
         self.minBet = None
         self.maxBet = None
-        self.actions = []
         self.canRaise = None
         self.canCheck = None
     
@@ -42,12 +43,48 @@ class Bot(object):
                 break
 
             print data
-
-            word = data.split()[0]
-            if word == "GETACTION":
-                self.socket.send("CHECK\n")
+            parts = data.split()
+            word = parts[0]
+            
+            if word == "NEWGAME":
+                self.name = parts[1]
+                self.oppName = parts[2]
+                self.stackSize = int(parts[3])
+                self.bb = int(parts[4])
+            elif word == "NEWHAND":
+                self.handID = int(parts[1])
+                if parts[2] == "false":
+                    self.button = False
+                else:
+                    self.button = True
+                self.position = self.button
+                self.holeCards = [parts[3], parts[4], parts[5]]
+                self.myBank.append(int(parts[6]))
+                self.time = float(parts[8])
+                self.numBoardCards = 0
+                self.recentActions = []
+                self.oppLastAction = None
+            elif word == "HANDOVER": #if opp folds and we haven't checked the board, could read the board here
+                pass
+            elif word == "KEYVALUE": #can ignore unless we are storing opp's info between games
+                pass
             elif word == "REQUESTKEYVALUES":
                 self.socket.send("FINISH\n")
+            elif word == "GETACTION":
+                self.potSize = int(parts[1])
+                self.numBoardCards = int(parts[2])
+                if self.numBoardCards == 0: #preflop
+                    self.preflop()
+                elif self.numBoardCards == 3: #flop
+                    if "DISCARD" in self.actions:
+                        self.discard()
+                    else:
+                        self.flop()
+                elif self.numBoardCards == 4: #turn                    
+                    self.turn()
+                else: #river                    
+                    self.river()
+            
         # Clean up the socket.
         self.socket.close()
    
@@ -78,7 +115,6 @@ class Bot(object):
     
     def rais(self, amount):
         amount = max(min(amount, self.maxBet), self.minBet)
-        
         if self.canRaise == None:
             self.call()
         elif self.canRaise:
