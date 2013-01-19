@@ -26,6 +26,9 @@ class Player(Bot):
         elif action == "RAISE":
             amount = randrange(self.minBet, self.maxBet + 1)
             self.rais(amount)
+        elif action == "BET":
+            amount = randrange(self.minBet, self.maxBet + 1)
+            self.bet(amount)
         else:
             print action, self.actions
 
@@ -33,30 +36,13 @@ class Player(Bot):
         if "DISCARD" in self.actions:
             self.discard(self.holeCards[randrange(0,3)])
         else:
-            self.turn()
+            self.preflop()
     
     def turn(self):
-        action = sample(self.actions, 1)[0]
-        if action == "CHECK":
-            self.check()
-        elif action == "CALL":
-            self.call()
-        elif action == "FOLD":
-            if random () < 0.5:
-                self.call()
-            else:
-                self.fold()
-        elif action == "RAISE":
-            amount = randrange(self.minBet, self.maxBet + 1)
-            self.rais(amount)
-        elif action == "BET":
-            amount = randrange(self.minBet, self.maxBet + 1)
-            self.bet(amount)
-        else:
-            print action, self.actions
+        self.preflop()
     
     def river(self):
-        self.turn()
+        self.preflop()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A Pokerbot.', add_help=False, prog='pokerbot')
