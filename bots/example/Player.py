@@ -25,7 +25,6 @@ class Player:
             # Here is where you should implement code to parse the packets from
             # the engine and act on it. We are just printing it instead.
             print data
-
             # When appropriate, reply to the engine with a legal action.
             # The engine will ignore all spurious responses.
             # The engine will also check/fold for you if you return an
@@ -35,13 +34,13 @@ class Player:
             word = data.split()[0]
             if word == "GETACTION":
                 # Currently CHECK on every move. You'll want to change this.
-                s.send("CHECK\n")
+                input_socket.send("CHECK\n")
             elif word == "REQUESTKEYVALUES":
                 # At the end, the engine will allow your bot save key/value pairs.
                 # Send FINISH to indicate you're done.
-                s.send("FINISH\n")
+                input_socket.send("FINISH\n")
         # Clean up the socket.
-        s.close()
+        input_socket.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A Pokerbot.', add_help=False, prog='pokerbot')

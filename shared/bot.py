@@ -4,14 +4,20 @@ Created on Jan 8, 2013
 @author: zhk
 '''
 
-class Bot(object): 
-    def initialize(self):
+from shared.calculator import Calculator
+
+class Bot(object):
+
+    def initialize_match(self):
+        self.initialize_hand()
+        self.calculator = Calculator()
         self.name = None
         self.oppName = None
         self.stackSize = None
         self.bb = None
         self.myBank = []
-        
+    
+    def initialize_hand(self):
         self.button = None
         self.holeCards = []
         self.handID = None
@@ -28,13 +34,14 @@ class Bot(object):
         self.actions = []
         self.minBet = None
         self.maxBet = None
-    
-    def __init__(self, socket):                
-        self.socket = socket
-        self.initialize()
+        
+        
+    def __init__(self):                
+        self.initialize_match()
         
     # private methods
     def run(self, input_socket):
+        self.socket = input_socket
         f_in = input_socket.makefile()
         while True:
             message = f_in.readline().strip()
@@ -62,13 +69,28 @@ class Bot(object):
                 self.button = True
             self.position = self.button
             self.holeCards = [parts[3], parts[4], parts[5]]
-            self.myBank.append(int(parts[6]))
             self.time = float(parts[8])
             self.numBoardCards = 0
             self.recentActions = []
             self.oppLastAction = None
         elif word == "HANDOVER": #if opp folds and we haven't checked the board, could read the board here
-            pass
+            self.myBank.append(int(parts[1]))
+            self.numBoardCards = int(parts[3])
+            self.boardCards = parts[3:3+self.numBoardCards ]            
+#            numLastActions = int(parts[4+self.numBoardCards])
+#            lastActionsString = parts[5+self.numBoardCards:5 + self.numBoardCards + numLastActions] 
+#            self.lastActions = []
+#            for actionString in lastActionsString:
+#                temp = actionString.split(":")
+#                if len(temp) == 2:
+#                    self.lastActions.append((temp[0], temp[1]))
+#                    if temp[1] == self.oppName:
+#                        self.oppLastAction = (temp[0])
+#                else:
+#                    self.lastActions.append((temp[0], int(temp[1]), temp[2]))
+#                    if temp[2] == self.oppName:
+#                        self.oppLastAction = (temp[0], temp[1])                        
+            self.initialize_hand()
         elif word == "KEYVALUE": #can ignore unless we are storing opp's info between games
             pass
         elif word == "REQUESTKEYVALUES":
@@ -76,6 +98,7 @@ class Bot(object):
         elif word == "GETACTION":
             self.potSize = int(parts[1])
             self.numBoardCards = int(parts[2])
+            self.boardCards = parts[3:3+self.numBoardCards ]
             numLastActions = int(parts[3+self.numBoardCards])
             lastActionsString = parts[4+self.numBoardCards:(4+self.numBoardCards)+numLastActions] 
             self.lastActions = []
@@ -89,11 +112,9 @@ class Bot(object):
                     self.lastActions.append((temp[0], int(temp[1]), temp[2]))
                     if temp[2] == self.oppName:
                         self.oppLastAction = (temp[0], temp[1])
-
             offset = 4 + self.numBoardCards + numLastActions
             numLegalActions = int(parts[offset])
             actionsString = parts[1+offset:1+offset+numLegalActions]
-            
             self.actions = []
             for actionString in actionsString:
                 temp = actionString.split(":")
@@ -101,15 +122,12 @@ class Bot(object):
                 if temp[0] == "RAISE" or temp[0] == "BET":
                     self.minBet = int(temp[1])
                     self.maxBet = int(temp[2])
-            self.time = float(parts[2+offset+numLegalActions]) 
-            
+            self.time = float(parts[1+offset+numLegalActions]) 
+                
             if self.numBoardCards == 0: #preflop
                 self.preflop()
             elif self.numBoardCards == 3: #flop
-                if "DISCARD" in self.actions:
-                    self.discard()
-                else:
-                    self.flop()
+                self.flop()
             elif self.numBoardCards == 4: #turn                    
                 self.turn()
             else: #river                    
@@ -128,46 +146,40 @@ class Bot(object):
     def river(self):
         self.check()
     
+    #interface to be implemented
     def showdown(self):
+        pass
+    
+    def handOver(self):
         pass
     
     #actions
     def check(self):
         #print "checking"
         self.myLastAction = ("CHECK")
-        self.socket.send("CHECK\n")
+        self.sendMessage("CHECK")
         
     def call(self):
         #print "calling"
         self.myLastAction = ("CALL")
-        self.socket.send("CALL\n")
+        self.sendMessage("CALL")
     
     def rais(self, amount):
-        amount = max(min(amount, self.maxBet), self.minBet)
-        if self.canRaise == None:
-            self.call()
-            print "Raise Exception" 
-        elif self.canRaise:
-            #print "raising:"+str(amount)
-            self.myLastAction = ("RAISE:", amount)
-            self.socket.send("RAISE:" + str(amount) + "\n")
-        else:
-            print "Raise Exception"
-            self.bet(amount)
+        self.myLastAction = ("RAISE", amount)
+        self.sendMessage("RAISE:" + str(amount))
     
     def bet(self, amount):
         #print "betting:"+str(amount)
-        self.myLastAction = ("BET:", amount)
-        self.socket.send("BET:" + str(amount) + "\n")
+        self.myLastAction = ("BET", amount)
+        self.sendMessage("BET" + str(amount))
     
     def fold(self):
-        if self.canCheck:
-            self.check()
-        else:
-            #print "folding"
-            self.myLastAction = ("FOLD")
-            self.socket.send("FOLD\n")
+        self.myLastAction = ("FOLD")
+        self.sendMessage("FOLD")
         
     def discard(self, card):
         #print "discarding"
-        self.socket.send("DISCARD:" + card + "\n")
+        self.sendMessage("DISCARD:" + card)
+        
+    def sendMessage(self, message):
+        self.socket.send(message + "\n")

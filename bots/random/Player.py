@@ -1,9 +1,7 @@
 import argparse
 import socket
-import sys
 
-import shared.calculator
-import shared.util
+from random import sample, randrange, random
 from shared.bot import Bot
 
 """
@@ -14,19 +12,51 @@ necessary to connect with the engine and then always returns the same action.
 It is meant as an example of how a pokerbot should communicate with the engine.
 """
 class Player(Bot):
-    pass
-
     def preflop(self):
-        self.check()
-    
+        action = sample(self.actions, 1)[0]
+        if action == "CHECK":
+            self.check()
+        elif action == "CALL":
+            self.call()
+        elif action == "FOLD":
+            if random () < 0.5:
+                self.call()
+            else:
+                self.fold()
+        elif action == "RAISE":
+            amount = randrange(self.minBet, self.maxBet + 1)
+            self.rais(amount)
+        else:
+            print action, self.actions
+
     def flop(self):
-        self.check()
+        if "DISCARD" in self.actions:
+            self.discard(self.holeCards[randrange(0,3)])
+        else:
+            self.turn()
     
     def turn(self):
-        self.check()
+        action = sample(self.actions, 1)[0]
+        if action == "CHECK":
+            self.check()
+        elif action == "CALL":
+            self.call()
+        elif action == "FOLD":
+            if random () < 0.5:
+                self.call()
+            else:
+                self.fold()
+        elif action == "RAISE":
+            amount = randrange(self.minBet, self.maxBet + 1)
+            self.rais(amount)
+        elif action == "BET":
+            amount = randrange(self.minBet, self.maxBet + 1)
+            self.bet(amount)
+        else:
+            print action, self.actions
     
     def river(self):
-        self.check()
+        self.turn()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A Pokerbot.', add_help=False, prog='pokerbot')
