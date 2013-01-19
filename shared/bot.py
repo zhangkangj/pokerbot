@@ -35,7 +35,6 @@ class Bot(object):
         self.minBet = None
         self.maxBet = None
         
-        
     def __init__(self):                
         self.initialize_match()
         
@@ -76,7 +75,7 @@ class Bot(object):
         elif word == "HANDOVER": #if opp folds and we haven't checked the board, could read the board here
             self.myBank.append(int(parts[1]))
             self.numBoardCards = int(parts[3])
-            self.boardCards = parts[3:3+self.numBoardCards ]            
+            self.boardCards = parts[3:3+self.numBoardCards]            
 #            numLastActions = int(parts[4+self.numBoardCards])
 #            lastActionsString = parts[5+self.numBoardCards:5 + self.numBoardCards + numLastActions] 
 #            self.lastActions = []
@@ -98,7 +97,7 @@ class Bot(object):
         elif word == "GETACTION":
             self.potSize = int(parts[1])
             self.numBoardCards = int(parts[2])
-            self.boardCards = parts[3:3+self.numBoardCards ]
+            self.boardCards = parts[3:3+self.numBoardCards]
             numLastActions = int(parts[3+self.numBoardCards])
             lastActionsString = parts[4+self.numBoardCards:(4+self.numBoardCards)+numLastActions] 
             self.lastActions = []
