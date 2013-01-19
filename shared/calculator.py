@@ -6,8 +6,7 @@ Created on Jan 10, 2013
 '''
 
 from shared.pbots_calc import calc
-from util import number_to_card, card_to_number, hash_cards, unhash_cards
-from datetime import datetime
+from util import number_to_card, c2n, hash_cards, unhash_cards
 from random import random, sample
 import numpy as np
 
@@ -32,7 +31,7 @@ class Calculator:
         for i in range(22100):
             self.preflopRankTable[pairs[i][1]] = (i+1)/22100.0
             self.preflopBucket[i/bucketSize].append(unhash_cards(pairs[i][1], 3))
-        for line in open("dat/preflopOdd.csv"):
+        for line in open("dat/rangedPreflopOdd.csv"):
             parts = line.strip().split(",")
             hashCode = int(parts[0])
             odds = [float(x) for x in parts[1:]]
@@ -134,7 +133,7 @@ class Calculator:
         if weights == None:
             return self.preflopOddTable[hashCode]
         else:
-            odds = self.rangdePreflopOddTable[hashCode]
+            odds = self.rangedPreflopOddTable[hashCode]
             return sum(p*q for p,q in zip(odds, weights))
 
     def preflopRank(self, cards):
@@ -191,8 +190,8 @@ def flopOddAdjusted(cards, board, cardString = None, boardString = None, iterati
 
 # basically wraps the simpleDiscard method in a simpler interface
 def simpleDiscardWrapper(cardStrings, boardStrings):
-    cards = [card_to_number(s) for s in cardStrings]
-    board = [card_to_number(s) for s in boardStrings]
+    cards = c2n(cardStrings)
+    board = c2n(boardStrings)
     
     keep = simpleDiscard(cards, board)
     
@@ -243,12 +242,18 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
             return [cards[0], cards[1]] 
 
 if __name__ == '__main__':
+    from util import draw_cards, n2c
+    from datetime import datetime
+    
     calculator = Calculator()
     start = datetime.now()
-    weights = [0] * 10
-    weights[9] = 1
-    cards = calculator.preflopCardsByRank(weights, 1)[0]
-    print cards, [number_to_card(x) for x in cards]
-    print calculator.preflopOdd(cards), calculator.preflopRank(cards)
-    
+    cards = draw_cards(3, True)
+    print cards, n2c(cards)
+    for i in range(10):
+        weights = [0] * 10
+        weights[i] = 1
+        print calculator.preflopOdd(cards, weights)
+    weights = [0.1] * 10
+    print calculator.preflopOdd(cards, weights)
+    print calculator.preflopOdd(cards)
     print "time:" + str(datetime.now() - start)

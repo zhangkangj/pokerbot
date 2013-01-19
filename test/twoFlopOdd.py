@@ -69,6 +69,9 @@ def process(bucketNumber = 259891):
     np.save("dat/keys.npy", keys)
     np.save("dat/values.npy", values)
     
+def process2():
+    pass
+    
 if __name__ == '__main__':
     allkeys = np.load("dat/allkeys.npy")
     allvalues = np.load("dat/allvalues.npy")
