@@ -12,7 +12,7 @@ from random import random, sample
 import numpy as np
 
 class Calculator:
-    def __init__(self, buckets = 100):
+    def __init__(self, buckets = 10):
         self.buckets = buckets
         bucketSize = 22100 / self.buckets
         self.flopKeys = np.load("dat/flopkeys.npy")
@@ -20,6 +20,7 @@ class Calculator:
         self.preflopOddTable = {}
         self.preflopRankTable = {}
         self.preflopBucket = [[] for i in range(buckets)] 
+        self.rangedPreflopOddTable = {}
         pairs = [] 
         for line in open("dat/preflopOdd.csv"):
             parts = line.strip().split(",")
@@ -28,10 +29,14 @@ class Calculator:
             self.preflopOddTable[hashCode] = odd
             pairs.append((odd, hashCode))
         pairs.sort()
-
         for i in range(22100):
             self.preflopRankTable[pairs[i][1]] = (i+1)/22100.0
             self.preflopBucket[i/bucketSize].append(unhash_cards(pairs[i][1], 3))
+        for line in open("dat/preflopOdd.csv"):
+            parts = line.strip().split(",")
+            hashCode = int(parts[0])
+            odds = [float(x) for x in parts[1:]]
+            self.rangedPreflopOddTable[hashCode] = odds
 
     #assume cards and board are sorted
     def twoFlopOdd(self, cards, board):
@@ -53,15 +58,15 @@ class Calculator:
             return cards[0], cards[1], odd3
     
     #assume opcards are sorted
-    def flopOdd(self, myCards, board, opCards = None, sampleSize = 300, iterations = 10000, cardStrings = None, boardString = None):
-        sampleRate = sampleSize / 15000.0
+    def flopOdd(self, myCards, board, opCards = None, sampleSize = 300, weights = None):
         myCards.sort()
         board.sort()
-        if cardStrings == None:
-            cardStrings = [number_to_card(x) for x in myCards]
-        if boardString == None:
-            boardString = "".join([number_to_card(x) for x in board])    
-
+        cardStrings = [number_to_card(x) for x in myCards]
+        boardString = "".join([number_to_card(x) for x in board])    
+        if weights == None:
+            sampleRate = sampleSize / 15000.0
+        else:
+            opCards = self.preflopCardsByRank(weights, int(sampleSize/0.7))
         totalProb0 = totalProb1 = totalProb2 = totalProb3 = 0
         n = 0
         myCards0 = simpleDiscard(myCards, board)
@@ -90,11 +95,11 @@ class Calculator:
                         opBest = self.flopOddNaive([i, j, k], board)
                         opBestString = number_to_card(opBest[0]) + number_to_card(opBest[1])
                         if len(myCards0) == 0:
-                            totalProb1 += calc(myCards1 + ":" + opBestString, boardString, "", iterations).ev[0]
-                            totalProb2 += calc(myCards2 + ":" + opBestString, boardString, "", iterations).ev[0]
-                            totalProb3 += calc(myCards3 + ":" + opBestString, boardString, "", iterations).ev[0] 
+                            totalProb1 += calc(myCards1 + ":" + opBestString, boardString, "", 10000).ev[0]
+                            totalProb2 += calc(myCards2 + ":" + opBestString, boardString, "", 10000).ev[0]
+                            totalProb3 += calc(myCards3 + ":" + opBestString, boardString, "", 10000).ev[0] 
                         else:
-                            totalProb0 += calc(myCards0String + ":" + opBestString, boardString, "", iterations).ev[0]  
+                            totalProb0 += calc(myCards0String + ":" + opBestString, boardString, "", 10000).ev[0]  
                         k+=1
                     j+=1
                 i+=1
@@ -108,11 +113,11 @@ class Calculator:
                 opBest = self.flopOddNaive(opCard, board)
                 opBestString = number_to_card(opBest[0]) + number_to_card(opBest[1])
                 if len(myCards0) == 0:
-                    totalProb1 += calc(myCards1 + ":" + opBestString, boardString, "", iterations).ev[0]
-                    totalProb2 += calc(myCards2 + ":" + opBestString, boardString, "", iterations).ev[0]
-                    totalProb3 += calc(myCards3 + ":" + opBestString, boardString, "", iterations).ev[0] 
+                    totalProb1 += calc(myCards1 + ":" + opBestString, boardString, "", 10000).ev[0]
+                    totalProb2 += calc(myCards2 + ":" + opBestString, boardString, "", 10000).ev[0]
+                    totalProb3 += calc(myCards3 + ":" + opBestString, boardString, "", 10000).ev[0] 
                 else:
-                    totalProb0 += calc(myCards0String + ":" + opBestString, boardString, "", iterations).ev[0]     
+                    totalProb0 += calc(myCards0String + ":" + opBestString, boardString, "", 10000).ev[0]     
         if len(myCards0) == 0:
             if totalProb1 > totalProb2 and totalProb1 > totalProb3:
                 return myCards[0], myCards[1], totalProb1 / n 
@@ -123,10 +128,14 @@ class Calculator:
         else:
             return myCards0[0], myCards0[1], totalProb0 / n
 
-    def preflopOdd(self, cards):
+    def preflopOdd(self, cards, weights = None):
         cards.sort()
         hashCode = hash_cards(cards)
-        return self.preflopOddTable[hashCode]
+        if weights == None:
+            return self.preflopOddTable[hashCode]
+        else:
+            odds = self.rangdePreflopOddTable[hashCode]
+            return sum(p*q for p,q in zip(odds, weights))
 
     def preflopRank(self, cards):
         cards.sort()
@@ -151,8 +160,7 @@ class Calculator:
                 opString = number_to_card(opCard[0]) + number_to_card(opCard[1])
                 totalProb += calc(cardStrings + ":" + opString, boardString, "", iterations).ev[0]
             return totalProb / len(opCards)   
-        
-            
+                    
     def preflopCardsByRank(self, weights, size):
         counts = [int(round(x * size)) for x in weights]
         result = []
@@ -180,8 +188,6 @@ def flopOddAdjusted(cards, board, cardString = None, boardString = None, iterati
         return myCards2, odd1 * 0.819+0.142
     if odd3 > odd1 and odd3 > odd2:
         return myCards3, odd1 * 0.819+0.142
-    
-
 
 # basically wraps the simpleDiscard method in a simpler interface
 def simpleDiscardWrapper(cardStrings, boardStrings):
@@ -239,8 +245,8 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
 if __name__ == '__main__':
     calculator = Calculator()
     start = datetime.now()
-    weights = [0] * 100
-    weights[99] = 1
+    weights = [0] * 10
+    weights[9] = 1
     cards = calculator.preflopCardsByRank(weights, 1)[0]
     print cards, [number_to_card(x) for x in cards]
     print calculator.preflopOdd(cards), calculator.preflopRank(cards)

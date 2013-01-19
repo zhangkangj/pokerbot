@@ -99,6 +99,12 @@ def card_to_number(card):
         raise Exception("suit exception:" + suit)
     return suit * 13 + rank
 
+def n2c(numbers):
+    return [number_to_card(x) for x in numbers]
+
+def c2n(cards):
+    return [card_to_number(x) for x in cards]
+
 number_list = range(51)
 card_list = [number_to_card(x) for x in number_list]
 

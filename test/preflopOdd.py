@@ -5,7 +5,7 @@ Created on Jan 12, 2013
 '''
 
 from shared.pbots_calc import calc
-from shared.util import number_to_card, card_to_number, draw_cards, hash_cards, reduce_hand
+from shared.util import n2c, c2n, draw_cards, hash_cards, reduce_hand
 from datetime import datetime
 from random import random 
 from shared.calculator import Calculator
@@ -74,15 +74,40 @@ def merge():
             n += 1
             out.write(line)
     print n
+    
+def mergeRanged():
+    n = 0
+    out = open("dat/rangedPreflopOdd.csv", "w")
+    results = {}
+    for i in range(1,11):
+        f = open("dat/preflopOdd" + str(i) + ".csv")
+        for line in f.readlines():
+            n += 1
+            parts = line.strip().split(",")
+            hashCode = int(parts[0])
+            odd = float(parts[1])
+            if hashCode in results:
+                results[hashCode].append(odd)
+            else:
+                results[hashCode] = [odd]
+    pairs = []
+    for key, value in results.iteritems():
+        pairs.append((key, value))
+    pairs.sort()
+    for pair in pairs:
+        out.write(str(pair[0]) + "," + ",".join([str(x) for x in pair[1]]) + "\n")
+        out.flush()
+    print n
                     
 if __name__ == '__main__':
-
     calculator = Calculator()
+    mergeRanged()
 #    start = datetime.now()
-##    cards = draw_cards(3, True)
-#    cards = [card_to_number(x) for x in ["Ah", "Ac", "2s"]]
+#    cards = draw_cards(3, True)
+##    cards = c2n(["Ah", "Ac", "2s"])
+#    print n2c(cards)
 #    print calculator.preflopOdd(cards)
-#    print calculator.preflopRank(cards)
+#    print preflopOdd(cards, None, sampleSize = 10000)
 #    #print preflopOdd(myCards, None, 400)
 #    print "time:" + str(datetime.now() - start)
 
@@ -92,4 +117,3 @@ if __name__ == '__main__':
 #        weights[i] = 0.1
 #    opCards = calculator.sampleCards(weights, 600)
 #    print computeRangedPreFlopOdd(index, opCards)
-    computePreFlopOdd()
