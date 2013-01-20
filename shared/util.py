@@ -5,6 +5,8 @@ Created on Jan 10, 2013
 '''
 
 from random import sample
+import numpy as np
+
 
 def reduce_hand_pair(cardValues1, cardValues2):
     pass
@@ -130,18 +132,33 @@ def unhash_cards(hashCode, n):
     result.reverse()
     return result
 
+def sample_distribution(population, counts):
+    result = []
+    for i in range(len(population)):
+        indices = np.random.random_integers(0, len(population[i])-1, counts[i])
+        for j in indices:
+            result.append(population[i][j])
+    return result
+    
 if __name__ == '__main__':
 #testing reduce_hand()
 #    cardValuesArray = [[13, 14, 15], [14, 40, 4], [50, 30, 31], [30, 50, 31], [30, 31, 50]]
 #    for cardValues in cardValuesArray:
 #        print reduce_hand(cardValues)
-    cards = draw_cards(3, True)
-    print [number_to_card(x) for x in cards]
-    print [number_to_card(x) for x in reduce_hand(cards)]
-    cardSet = {}
-    for i in range(52):
-        for j in range(i+1,52):
-            for k in range(j+1,52):
-                hashCode = hash_cards(reduce_hand([i,j,k]))
-                cardSet[hashCode] = True
-    print len(cardSet)
+#    cards = draw_cards(3, True)
+#    print [number_to_card(x) for x in cards]
+#    print [number_to_card(x) for x in reduce_hand(cards)]
+#    cardSet = {}
+#    for i in range(52):
+#        for j in range(i+1,52):
+#            for k in range(j+1,52):
+#                hashCode = hash_cards(reduce_hand([i,j,k]))
+#                cardSet[hashCode] = True
+#    print len(cardSet) 
+    a = range(20000)
+    population = [sample(a, 2000) for x in range(10)] 
+    from datetime import datetime
+    start = datetime.now()
+    for i in range(10):
+        len(sample_distribution(population, [.1, .1] * 10, 20000))
+    print "time:" + str(datetime.now() - start)
