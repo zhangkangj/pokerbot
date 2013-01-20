@@ -14,8 +14,7 @@ class Calculator:
     def __init__(self, buckets = 10):
         self.buckets = buckets
         bucketSize = 22100 / self.buckets
-        self.flopKeys = np.load("dat/flopkeys.npy")
-        self.flopValues = np.load("dat/flopvalues.npy")
+        self.keys = np.load("dat/flopodds.npy")
         self.preflopOddTable = {}
         self.preflopRankTable = {}
         self.preflopBucket = [[] for i in range(buckets)] 
@@ -40,9 +39,7 @@ class Calculator:
     #assume cards and board are sorted
     def twoFlopOdd(self, cards, board):
         hashCode = hash_cards(cards + board)
-        key = hashCode % 259891
-        index = np.searchsorted(self.flopKeys[key], hashCode)
-        return self.flopValues[key][index]
+        return self.keys[hashCode%140608][hashCode/140608]
 
     #assume cards and board are sorted
     def flopOddNaive(self, cards, board):

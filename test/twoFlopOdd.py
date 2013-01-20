@@ -70,13 +70,31 @@ def process(bucketNumber = 259891):
     np.save("dat/values.npy", values)
     
 def process2():
-    pass
+    keys = np.empty(140608, dtype = object)
+    for i in range(0,52):
+        for j in range(i+1,52):
+            for k in range(j+1,52):
+                boardCode = hash_cards([i,j,k])
+                print i, j, k, boardCode
+                keys[boardCode] = np.empty(2704, dtype = np.float16)
+    for line in open("dat/twoFlopOdd.csv"):
+        parts = line.strip().split(",")
+        hashCode = int(parts[0])
+        odd = float(parts[1])
+        key = hashCode % 140608
+        try:
+            keys[key][hashCode/140608] = odd
+        except:
+            print hashCode, key, hashCode/2704
+            print keys[key]   
+    np.save("dat/flopOdd.npy", keys)
     
 if __name__ == '__main__':
-    allkeys = np.load("dat/allkeys.npy")
-    allvalues = np.load("dat/allvalues.npy")
-    flopKeys = np.load("dat/keys.npy")
-    flopValues = np.load("dat/values.npy")
+#    allkeys = np.load("dat/allkeys.npy")
+#    allvalues = np.load("dat/allvalues.npy")
+#    flopKeys = np.load("dat/keys.npy")
+#    flopValues = np.load("dat/values.npy")
+    keys = np.load("dat/flopodds.npy")
     cards = draw_cards(5, True)
     hand = cards[0:2]
     board = cards[2:5] 
@@ -88,9 +106,6 @@ if __name__ == '__main__':
     print cards, hashCode
     print calc(handstring + ":xx", boardstring, "", 1000).ev[0]
     print calc(handstring + ":xx", boardstring, "", 50000).ev[0]
-    key = hashCode % 259891
-    index = np.searchsorted(flopKeys[key], hashCode)
-    print flopKeys[key][index], flopValues[key][index]
-    index = np.searchsorted(allkeys, hashCode)
-    print allkeys[index], allvalues[index]
+    print keys[hashCode%140608][hashCode/140608]
+
     
