@@ -131,7 +131,7 @@ class Bot(object):
                 self.turn()
             else: #river                    
                 self.river()
-   
+
     # public methods
     def preflop(self):
         self.check()
@@ -170,7 +170,7 @@ class Bot(object):
     def bet(self, amount):
         #print "betting:"+str(amount)
         self.myLastAction = ("BET", amount)
-        self.sendMessage("BET" + str(amount))
+        self.sendMessage("BET:" + str(amount))
     
     def fold(self):
         self.myLastAction = ("FOLD")
