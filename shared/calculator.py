@@ -6,7 +6,7 @@ Created on Jan 10, 2013
 '''
 
 from shared.pbots_calc import calc
-from util import number_to_card, c2n, n2c, hash_cards, unhash_cards, sample_distribution
+from util import number_to_card, c2n, hash_cards, unhash_cards, sample_distribution
 from random import sample
 import numpy as np
 
@@ -128,7 +128,6 @@ class Calculator:
             for cards in preflopCards:
                 if cards[0] in board or cards[1] in board or cards[2] in board:
                     continue
-                print n2c(cards), n2c(self.flopOddNaive(cards, board)[0:2]), n2c(board)
                 odd = self.flopOddNaive(cards, board)[2]
                 index = min(int(odd * 10), 9)
                 weights[index] += 1
