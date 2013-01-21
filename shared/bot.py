@@ -5,12 +5,14 @@ Created on Jan 8, 2013
 '''
 
 from shared.calculator import Calculator
+from shared.statistician import Statistician
 
 class Bot(object):
 
     def initialize_match(self):
         self.initialize_hand()
         self.calculator = Calculator()
+        self.statistician = Statistician()
         self.name = None
         self.oppName = None
         self.stackSize = None
@@ -142,6 +144,7 @@ class Bot(object):
                 self.turn()
             else: #river                    
                 self.river()
+                
     # public methods
     def prepareNewHand(self):
         pass
