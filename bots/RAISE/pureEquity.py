@@ -163,7 +163,7 @@ class preflopBot(Bot):
                     self.fold()
                 else:
                     self.preflopRaise(secRaiseRatio*oppRaiseAmount)
-            else: #opp raised
+            else: #opp 3-raised
                 oppRaiseAmount = self.oppLastAction[1]
                 potOdd = self.calPotOdd(oppRaiseAmount)
                 if potOdd >= self.equity:
@@ -178,7 +178,6 @@ class preflopBot(Bot):
         else:        
             # out of position
             if not self.button:
-                
                 # opponent has not acted yet
                 if not self.oppLastAction:
                     if self.isPreflopAggressor:
@@ -209,7 +208,7 @@ class preflopBot(Bot):
                 oppAct = self.oppLastAction[0]
                 # opponent raised
                 if oppAct == "RAISE":
-                    oppRaise = self.oppLastAction[1]
+                    oppRaiseAmount = self.oppLastAction[1]
                     if self.boardIsSafe():
                         # TODO: add in bluff raising logic and take into account opponent history
                         if self.havePairs() < 3 or self.haveTrips() or self.haveQuads() or self.haveStraight() or self.haveFlush():
