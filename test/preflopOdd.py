@@ -27,7 +27,7 @@ def preflopOdd(myCards, opCards = None, sampleSize = 400):
                     continue
                 n += 1
                 board = [i, j, k]
-                totalProb += calculator.flopOdd(myCards, board, opCards, 400)[2]
+                totalProb += calculator.flopOdd(myCards, board, opCards, None, None, 400)[2]
     odd = totalProb / n
     return odd
 
@@ -101,15 +101,14 @@ def mergeRanged():
                     
 if __name__ == '__main__':
     calculator = Calculator()
-    mergeRanged()
-#    start = datetime.now()
-#    cards = draw_cards(3, True)
-##    cards = c2n(["Ah", "Ac", "2s"])
-#    print n2c(cards)
-#    print calculator.preflopOdd(cards)
-#    print preflopOdd(cards, None, sampleSize = 10000)
-#    #print preflopOdd(myCards, None, 400)
-#    print "time:" + str(datetime.now() - start)
+    start = datetime.now()
+    cards = draw_cards(3, True)
+#    cards = c2n(["Ah", "Ac", "2s"])
+    print n2c(cards)
+    print calculator.preflopOdd(cards)
+    print preflopOdd(cards, None, sampleSize = 10000)
+    #print preflopOdd(myCards, None, 400)
+    print "time:" + str(datetime.now() - start)
 
 #    index = 9
 #    weights = [0] * 100
