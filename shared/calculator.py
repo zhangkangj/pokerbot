@@ -226,7 +226,10 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
         rank = cards[i] % 13
         suit = cards[i] / 13
         if ranks[rank] == 1 and suits[suit] < 4 and ranks2[rank] == 0:
-            keep[i] = rank + suits[suit] * 2 # slight boost for 3 flush
+            if suits[suit] == 3:
+                keep[i] = rank + 2.5 # slight boost for 3 flush
+            else:
+                keep[i] = rank
     if sum(keep) == 300:
         return []
     else:
