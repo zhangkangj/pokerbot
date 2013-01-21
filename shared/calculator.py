@@ -92,7 +92,7 @@ class Calculator:
             totalProb += calc(myCardsString + ":" + opBestString, boardString, "", iterations).ev[0]
         return totalProb / n
 
-    def flopOdd(self, myCards, board, opCards = None, preflopWeights = None, flopWeights = None, sampleSize = 300):
+    def flopOdd(self, myCards, board, opCards = None, preflopWeights = None, flopWeights = None, sampleSize = 100):
         myCards.sort()
         board.sort()
         boardString = "".join([number_to_card(x) for x in board])
