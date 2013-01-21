@@ -56,9 +56,9 @@ class Calculator:
         hashCode = hash_cards(cards)
         return self.preflopRankTable[hashCode]
                     
-    def samplePreflop(self, weights, size):
-        counts = [int(round(x * size)) for x in weights]
-        return sample_distribution(self.rangedPreflopOddTable, counts)
+    def samplePreflop(self, weights, sampleSize):
+        counts = [int(round(x * sampleSize)) for x in weights]
+        return sample_distribution(self.preflopBucket, counts)
 
     #flop methods
     def twoFlopOdd(self, cards, board):
@@ -90,11 +90,27 @@ class Calculator:
                 totalProb += calc(myCardsString + ":" + opBestString, boardString, "", iterations).ev[0]
         return totalProb / n
 
-    def flopOdd(self, myCards, board, sampleSize = 300, preflopWeights = None, flopWeights = None):
+    def flopOdd(self, myCards, board, preflopWeights = None, flopWeights = None, sampleSize = 300):
         myCards.sort()
         board.sort()
         boardString = "".join([number_to_card(x) for x in board])    
-        
+        opCards = self.sampleFlop(board, preflopWeights, flopWeights, sampleSize)
+        myCards0 = simpleDiscard(myCards, board)
+        if len(myCards0) == 0:
+            prob0 = self.computeOdd(myCards0, board, opCards, boardString)
+            return myCards0[0], myCards0[1], prob0, opCards
+        else:                
+            prob1 = self.computeOdd(myCards[0:2], board, opCards, boardString)
+            prob2 = self.computeOdd([myCards[0],myCards[2]], board, opCards, boardString)
+            prob3 = self.computeOdd(myCards[1:3], board, opCards, boardString)
+            if prob1 > prob2 and prob1 > prob3:
+                return myCards[0], myCards[1], prob1, opCards
+            if prob2 > prob1 and prob2 > prob3:
+                return myCards[0], myCards[2], prob2, opCards
+            else:
+                return myCards[1], myCards[2], prob3, opCards
+    
+    def sampleFlop(self, board, preflopWeights, flopWeights, sampleSize):
         if preflopWeights == None and flopWeights == None:
             opCards = sample(self.holeCards, sampleSize)
         elif flopWeights == None:
@@ -113,24 +129,10 @@ class Calculator:
             flopOdds = self.flopOddTable(flopWeights, board)
             counts = [int(round(x * sampleSize / 22100)) for x in weights]
             opCards = sample_distribution(flopOdds, counts)
-        
-        myCards0 = simpleDiscard(myCards, board)
-        if len(myCards0) == 0:
-            prob0 = self.computeOdd(myCards0, board, opCards, boardString)
-            return myCards0[0], myCards0[1], prob0, opCards
-        else:                
-            prob1 = self.computeOdd(myCards[0:2], board, opCards, boardString)
-            prob2 = self.computeOdd([myCards[0],myCards[2]], board, opCards, boardString)
-            prob3 = self.computeOdd(myCards[1:3], board, opCards, boardString)
-            if prob1 > prob2 and prob1 > prob3:
-                return myCards[0], myCards[1], prob1, opCards
-            if prob2 > prob1 and prob2 > prob3:
-                return myCards[0], myCards[2], prob2, opCards
-            else:
-                return myCards[1], myCards[2], prob3, opCards
+        return opCards
 
     def flopOddTable(self, weights, board, buckets = 10):
-        result = {}
+        result = [[] for i in range(buckets)] 
         for i in range(buckets):
             result[i] = []
         for i in range(0,52):
