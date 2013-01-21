@@ -107,16 +107,19 @@ class Bot(object):
             numLastActions = int(parts[3+self.numBoardCards])
             lastActionsString = parts[4+self.numBoardCards:(4+self.numBoardCards)+numLastActions] 
             self.lastActions = []
+            self.oppLastAction = None
             for actionString in lastActionsString:
                 temp = actionString.split(":")
                 if len(temp) == 2:
                     self.lastActions.append((temp[0], temp[1]))
+                    if temp[0] == "DEAL": #only opp action after the dealling counts
+                        self.oppLastAction = None
                     if temp[1] == self.oppName:
-                        self.oppLastAction = (temp[0])
+                        self.oppLastAction = [temp[0]]
                 else:
                     self.lastActions.append((temp[0], int(temp[1]), temp[2]))
                     if temp[2] == self.oppName:
-                        self.oppLastAction = (temp[0], int(temp[1]))
+                        self.oppLastAction = [temp[0], int(temp[1])]
                         
             #get actions
             offset = 4 + self.numBoardCards + numLastActions
@@ -139,7 +142,6 @@ class Bot(object):
                 self.turn()
             else: #river                    
                 self.river()
-
     # public methods
     def prepareNewHand(self):
         pass
@@ -166,19 +168,19 @@ class Bot(object):
     #actions
     def check(self):
         #print "checking"
-        self.myLastAction = ("CHECK")
+        self.myLastAction = ["CHECK"]
         self.sendMessage("CHECK")
         
     def call(self):
         #print "calling"
-        self.myLastAction = ("CALL")
+        self.myLastAction = ["CALL"]
         self.sendMessage("CALL")
     
     def rais(self, amount):
         amount = min(self.maxBet, max(self.minBet, amount))
         
         if "RAISE" in self.actions:
-            self.myLastAction = ("RAISE", amount)
+            self.myLastAction = ["RAISE", amount]
             self.sendMessage("RAISE:" + str(amount))
         elif "BET" in self.actions:
             self.bet(amount)
@@ -187,11 +189,11 @@ class Bot(object):
     
     def bet(self, amount):
         #print "betting:"+str(amount)
-        self.myLastAction = ("BET", amount)
+        self.myLastAction = ["BET", amount]
         self.sendMessage("BET:" + str(amount))
     
     def fold(self):
-        self.myLastAction = ("FOLD")
+        self.myLastAction = ["FOLD"]
         self.sendMessage("FOLD")
         
     def discard(self, card):
