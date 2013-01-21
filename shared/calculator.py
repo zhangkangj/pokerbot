@@ -237,7 +237,7 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
         else:
             return (cards[0], cards[1]) 
 
-if __name__ == '__main__':
+if __name__ == '__main__':    
     from util import draw_cards, n2c
     from datetime import datetime
     
