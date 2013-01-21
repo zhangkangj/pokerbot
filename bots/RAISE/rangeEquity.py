@@ -26,10 +26,6 @@ class rangeEquity(Bot):
         self.oppRange = [None, None]
         self.oppBBRaiseMatrix = None
         self.oppSBRaiseMatrix = None
-    
-    def calPotOdd(self, oppRaiseAmount):
-        delta = 2*oppRaiseAmount - self.potSize
-        return float(delta)/(2*oppRaiseAmount)
 
     def oppRaiseStats(self, dealer, raiseRound, oppAction, raiseRatio = 0):
         if dealer:
@@ -176,7 +172,6 @@ class rangeEquity(Bot):
             keep = self.calculator.flopOdd(util.c2n(self.holeCards), util.c2n(self.boardCards))[0:2]
             for card in self.holeCards:
                 if util.card_to_number(card) not in keep:
-                    print card
                     self.discard(card)
                     break
         else:        
@@ -243,11 +238,16 @@ class rangeEquity(Bot):
     def river(self):
         self.flop()
 
+    #pre-flop sub-methods
+    def calPotOdd(self, oppRaiseAmount):
+        delta = 2*oppRaiseAmount - self.potSize
+        return float(delta)/(2*oppRaiseAmount)    
+    
     def preflopRaise(self, raiseAmount):
         self.rais(raiseAmount)
         self.numPreflopRaises += 1
         self.isPreflopAggressor = True
-            
+
     def preflopCall(self):
         self.call()
         self.isPreflopAggressor = False
@@ -258,14 +258,13 @@ class rangeEquity(Bot):
                 self.fold()
             else:
                 self.preflopRaise(firstRaiseRatio*self.bb)
-                
         elif self.numPreflopRaises == 1: #opp has reraised
             oppRaiseAmount = self.oppLastAction[1]
             potOdd = self.calPotOdd(oppRaiseAmount)
             if potOdd >= self.equity:
                 self.fold()
             else:
-                self.preflopRaise(secRaiseRatio*oppRaiseAmount)
+                self.preflopRaise(secRaiseRatio*oppRaiseAmount) #our 3-raise
         else: #call or fold if opp has raised twice
             oppRaiseAmount = self.oppLastAction[1]
             potOdd = self.calPotOdd(oppRaiseAmount)
@@ -273,7 +272,8 @@ class rangeEquity(Bot):
                 self.fold()
             else:
                 self.preflopCall()
-                    
+                 
+    #flop sub-methods   
     def boardIsSafe(self):
         bcValuesSorted = self.getCardValues(self.boardCards)
         bcValuesSorted.sort()
