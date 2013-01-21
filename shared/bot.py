@@ -10,15 +10,15 @@ from shared.statistician import Statistician
 class Bot(object):
 
     def initialize_match(self):
-        self.initialize_hand()
-        self.calculator = Calculator()
-        self.statistician = Statistician()
+        self.cal = Calculator()
+        self.stat = Statistician()
         self.name = None
         self.oppName = None
         self.stackSize = None
         self.bb = None
         self.myBank = []
-    
+        self.initialize_hand()
+        
     def initialize_hand(self):
         self.button = None
         self.holeCards = []
