@@ -175,8 +175,15 @@ class Bot(object):
         self.sendMessage("CALL")
     
     def rais(self, amount):
-        self.myLastAction = ("RAISE", amount)
-        self.sendMessage("RAISE:" + str(amount))
+        amount = min(self.maxBet, max(self.minBet, amount))
+        
+        if "RAISE" in self.actions:
+            self.myLastAction = ("RAISE", amount)
+            self.sendMessage("RAISE:" + str(amount))
+        elif "BET" in self.actions:
+            self.bet(amount)
+        else:
+            self.call()
     
     def bet(self, amount):
         #print "betting:"+str(amount)
