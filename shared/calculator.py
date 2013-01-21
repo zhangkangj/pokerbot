@@ -125,13 +125,17 @@ class Calculator:
                 preflopCards = sample(self.holeCards, 500)
             else:
                 preflopCards = self.samplePreflop(preflopWeights, 500)
+            tempTable = self.keys[hash_cards(board)].tolist()
             for cards in preflopCards:
                 if cards[0] in board or cards[1] in board or cards[2] in board:
                     continue
-                odd = self.flopOddNaive(cards, board)[2]
+                odd1 = tempTable[cards[0]*52 + cards[1]]
+                odd2 = tempTable[cards[0]*52 + cards[2]]
+                odd3 = tempTable[cards[1]*52 + cards[2]]
+                odd = max(odd1, odd2, odd3)
+#                odd = self.flopOddNaive(cards, board)[2]
                 index = min(int(odd * 10), 9)
                 weights[index] += 1
-            
             flopOddTable = self.getFlopOddTable(board)
             counts = [a * b for a ,b in zip(weights, flopWeights)]
             s = 1.0 * sampleSize / sum(counts)
@@ -229,10 +233,11 @@ if __name__ == '__main__':
     cards = draw_cards(6, True)
     print cards, n2c(cards)
     weights1 = [0,0,0,0,0,1,1,1,1,0]
-    weights2 = [0,0,0,.3,.2,.1,.1,.1,.1,.1]
+    weights2 = [0,0,0,.1,.2,.1,.2,.2,.1,.1]
     
     for i in range(10):
         result = cal.flopOdd(cards[0:3], cards[3:6], None, weights1, weights2, 100)
-        print (n2c(result[0:2]),result[2])
+        #print (n2c(result[0:2]),result[2])
+        #result = cal.sampleFlop(cards[0:3], weights1, weights2, 1000)
     
     print "time:" + str(datetime.now() - start)
