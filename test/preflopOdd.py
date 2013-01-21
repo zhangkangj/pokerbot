@@ -101,22 +101,22 @@ def mergeRanged():
                     
 if __name__ == '__main__':
     calculator = Calculator()
-#    start = datetime.now()
-#    cards = draw_cards(3, True)
-    #cards = c2n(["Ah", "Ac", "2s"])
-#    print n2c(cards)
-#    print calculator.preflopOdd(cards)
-#    print preflopOdd(cards, None, sampleSize = 500)
-#    print preflopOdd(cards, None, sampleSize = 500)
-#    print preflopOdd(cards, None, sampleSize = 500)
-#    print preflopOdd(cards, None, sampleSize = 500)
-#    print preflopOdd(cards, None, sampleSize = 500)
-#    #print preflopOdd(myCards, None, 400)
-#    print "time:" + str(datetime.now() - start)
+    start = datetime.now()
+    cards = draw_cards(3, True)
+    cards = c2n(["Ah", "Ac", "2s"])
+    print n2c(cards)
+    print calculator.preflopOdd(cards)
+    print preflopOdd(cards, None, sampleSize = 500)
+    print preflopOdd(cards, None, sampleSize = 500)
+    print preflopOdd(cards, None, sampleSize = 500)
+    print preflopOdd(cards, None, sampleSize = 500)
+    print preflopOdd(cards, None, sampleSize = 500)
+    #print preflopOdd(myCards, None, 400)
+    print "time:" + str(datetime.now() - start)
     
-    index = 9
-    weights = [0] * 10
-    weights[index] = 1
-    opCards = calculator.samplePreflop(weights, 600)
-    print opCards
-    print computeRangedPreFlopOdd(index, opCards)
+#    index = 9
+#    weights = [0] * 10
+#    weights[index] = 1
+#    opCards = calculator.samplePreflop(weights, 600)
+#    print opCards
+#    print computeRangedPreFlopOdd(index, opCards)

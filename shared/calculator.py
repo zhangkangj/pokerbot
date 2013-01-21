@@ -83,13 +83,31 @@ class Calculator:
             boardString = "".join([number_to_card(x) for x in board])
         myCardsString = "".join([number_to_card(x) for x in myCards])
         totalProb = n = 0
+        if len(opCards[0]) == 3:
+            tempTable = self.keys[hash_cards(board)].tolist()
         for opCard in opCards:
-            if opCard[0] in myCards or opCard[0] in board or opCard[1] in myCards or opCard[1] in board or opCard[2] in myCards or opCard[2] in board:
+            if opCard[0] in myCards or opCard[0] in board or opCard[1] in myCards or opCard[1] in board:
                 continue
-            n += 1
-            opBest = self.flopOddNaive(opCard, board[0:3])
-            opBestString = number_to_card(opBest[0]) + number_to_card(opBest[1])
+#            opBest = self.flopOddNaive(opCard, board[0:3])
+#            opBestString = number_to_card(opBest[0]) + number_to_card(opBest[1])
+#            print (opCard[0]*52 + opCard[1]).__class__
+#            if twoCards:
+            if len(opCards[0]) == 3:
+                if opCard[2] in board or opCard[2] in myCards:
+                    continue     
+                odd1 = tempTable[opCard[0]*52 + opCard[1]]
+                odd2 = tempTable[opCard[0]*52 + opCard[2]]
+                odd3 = tempTable[opCard[1]*52 + opCard[2]]
+                if odd1 > odd2 and odd1 > odd3:
+                    opBestString = number_to_card(opCard[0]) + number_to_card(opCard[1])
+                elif odd2 > odd1 and odd2 > odd3:
+                    opBestString = number_to_card(opCard[0]) + number_to_card(opCard[2])
+                else:
+                    opBestString = number_to_card(opCard[1]) + number_to_card(opCard[2])
+            else:
+                opBestString = "".join([number_to_card(x) for x in opCard[0:2]])    
             totalProb += calc(myCardsString + ":" + opBestString, boardString, "", iterations).ev[0]
+            n += 1
         return totalProb / n
 
     def flopOdd(self, myCards, board, opCards = None, preflopWeights = None, flopWeights = None, sampleSize = 100):
@@ -122,9 +140,9 @@ class Calculator:
         else:
             weights = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             if preflopWeights == None:
-                preflopCards = sample(self.holeCards, 500)
+                preflopCards = sample(self.holeCards, 1000)
             else:
-                preflopCards = self.samplePreflop(preflopWeights, 500)
+                preflopCards = self.samplePreflop(preflopWeights, 1000)
             tempTable = self.keys[hash_cards(board)].tolist()
             for cards in preflopCards:
                 if cards[0] in board or cards[1] in board or cards[2] in board:
@@ -133,7 +151,6 @@ class Calculator:
                 odd2 = tempTable[cards[0]*52 + cards[2]]
                 odd3 = tempTable[cards[1]*52 + cards[2]]
                 odd = max(odd1, odd2, odd3)
-#                odd = self.flopOddNaive(cards, board)[2]
                 index = min(int(odd * 10), 9)
                 weights[index] += 1
             flopOddTable = self.getFlopOddTable(board)
@@ -151,7 +168,7 @@ class Calculator:
                     continue
                 odd = self.twoFlopOdd([i, j], board)
                 index = min(int(odd * 10), 9)
-                temp[index].append((i,j,odd))
+                temp[index].append((i,j))
         return temp
 
     #turn, river method
@@ -236,8 +253,8 @@ if __name__ == '__main__':
     weights2 = [0,0,0,.1,.2,.1,.2,.2,.1,.1]
     
     for i in range(10):
-        result = cal.flopOdd(cards[0:3], cards[3:6], None, weights1, weights2, 100)
-        #print (n2c(result[0:2]),result[2])
+        result = cal.flopOdd(cards[0:3], cards[3:6], None, None, None, 300)
+        print (n2c(result[0:2]),result[2])
         #result = cal.sampleFlop(cards[0:3], weights1, weights2, 1000)
     
     print "time:" + str(datetime.now() - start)
