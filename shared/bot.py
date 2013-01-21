@@ -72,6 +72,8 @@ class Bot(object):
             self.numBoardCards = 0
             self.recentActions = []
             self.oppLastAction = None
+            
+            self.prepareNewHand()
         elif word == "HANDOVER":
             self.myBank.append(int(parts[1]))
             self.numBoardCards = int(parts[3])
@@ -133,6 +135,9 @@ class Bot(object):
                 self.river()
 
     # public methods
+    def prepareNewHand(self):
+        pass
+    
     def preflop(self):
         self.check()
     
