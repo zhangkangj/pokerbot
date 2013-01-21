@@ -2,8 +2,8 @@ from shared.bot import Bot
 
 import argparse
 import socket
-from ...shared import calculator
-from ...shared import util
+from shared.calculator import simpleDiscardWrapper
+import shared.util as util
 
 from datetime import datetime
 
@@ -14,49 +14,25 @@ secRaiseRatio = 3
 secEqThresh = .65
 
 class preflopBot(Bot):
-    def __init__(self, socket):
-        super(preflopBot, self).__init__(socket)
+    def __init__(self):
+        super(preflopBot, self).__init__()
         self.equity = None
         self.numPreflopRaises = 0
         
         #requested by Mark for post flop
-        self.position = None
         self.isPreflopAggressor = None
-        self.lastAction = None
-        self.oppLastAction = None
         
         #requested by Qinxuan for statistical tools
         self.oppRange = [None, None]
         self.oppBBRaiseMatrix = None
         self.oppSBRaiseMatrix = None
-        
-        calculator.initializePreflopOdds()
-
-    def getRecentActions(self, parts):
-        numRecentActions = int(parts[3+self.numBoardCards])
-        self.recentActions = parts[4+self.numBoardCards:(4+self.numBoardCards)+numRecentActions]
-
-    def getActions(self, parts):
-        offSet = 4 + self.numBoardCards + len(self.recentActions)
-        numActions = int(parts[offSet])
-        self.actions = parts[1+offSet:1+offSet+numActions]
-        
-    def getRaiseRange(self, action):
-        parts = action.split(':')
-        self.minBet = int(parts[1])
-        self.maxBet = int(parts[2])
-
-    def getOppRaiseAmount(self):
-        oppRaise = self.recentActions[-1]
-        return int(oppRaise.split(':')[1])
     
     def calPotOdd(self, oppRaiseAmount):
         delta = 2*oppRaiseAmount - self.potSize
         return float(delta)/(2*oppRaiseAmount)
 
     def oppRaiseStats(self, dealer, raiseRound, oppAction, raiseRatio = 0):
-        
-        if dealer == True:
+        if dealer:
             if raiseRound == 1:
                 self.oppBBFirstTotalTimes += 1
             
@@ -111,9 +87,7 @@ class preflopBot(Bot):
 
             if len(self.oppBBRaiseMatrix[raiseRound]) > 100:
                 self.oppBBRaiseMatrix[raiseRound].pop(0)
-                    
-            
-        elif dealer == False:  
+        else:  
             if raiseRound == 1:
                 self.oppSBFirstTotalTimes += 1
             
@@ -166,118 +140,106 @@ class preflopBot(Bot):
             self.oppSBRaiseMatrix[raiseRound].append(raiseRatio)
 
             if len(self.oppSBRaiseMatrix[raiseRound]) > 100:
-                self.oppSBRaiseMatrix[raiseRound].pop(0)
-
-    def getOppLastAction(self):
-        for i in range(len(self.recentActions)-1, -1, -1):
-            action = self.recentActions[i]
-            if action.endswith(self.oppName):
-                self.oppLastAction = action[:-len(self.oppName)-1]
-                break
-                
-    def getLastAction(self):
-        for i in range(len(self.recentActions)-1, -1, -1):
-            action = self.recentActions[i]
-            if action.endswith(self.name):
-                self.LastAction = action[:-len(self.name)-1]        
-                
-    def run(self, input_socket):
-        f_in = input_socket.makefile()
-        while True:
-            #start2 = datetime.now()
-            data = f_in.readline().strip()
-            if not data:
-                print "Gameover, engine disconnected."
-                break
-
-            print data
-
-            parts = data.split()
-            word = parts[0]
-            
-            if word == "NEWGAME":
-                self.name = parts[1]
-                self.oppName = parts[2]
-                self.stackSize = int(parts[3])
-                self.bb = int(parts[4])
-            elif word == "NEWHAND":
-                self.handID = parts[1]
-                
-                if parts[2] == "false":
-                    self.button = False
-                else:
-                    self.button = True
-                self.position = self.button
-                self.holeCards = [parts[3], parts[4], parts[5]]
-                #start1 = datetime.now()
-                self.equity = calculator.preflopOdd(
-                    [util.card_to_number(card) for card in self.holeCards])
-                #print "time1:" + str(datetime.now() - start1)
-                self.numPreflopRaises = 0
-                self.numBoardCards = 0
-                self.recentActions = []
-                
-                self.isPreflopAggressor = None
-                self.oppLastAction = None
-
-            elif word == "GETACTION":
-                self.potSize = int(parts[1])
-                numBoardCards = int(parts[2])
-                
-                # update the board cards if the street has just changed
-                if self.numBoardCards != numBoardCards:
-                    self.numBoardCards = numBoardCards
-                    self.boardCards = parts[3:3+numBoardCards]
-                
-                self.getRecentActions(parts)
-                self.getActions(parts)
-        
-                #if can only call, self.canRaise = None
-                self.canRaise = None
-                for action in self.actions:
-                    if action.startswith('CHECK'):
-                        self.canCheck = True
-                    elif action.startswith('FOLD'):
-                        self.canCheck = False
-                    elif action.startswith('RAISE'):
-                        self.canRaise = True
-                        self.getRaiseRange(action)
-                    elif action.startswith('BET'):
-                        self.canRaise = False
-                        self.getRaiseRange(action)
-                
-                if numBoardCards == 0: #preflop
-                    self.preflop()
-
-                elif numBoardCards == 3: #flop
-                    if "DISCARD" in self.actions:
-                        disCard = calculator.simpleDiscardWrapper(self.holeCards, self.boardCards)
-                        self.discard(disCard)
-                    else:
-                        self.getLastAction()
-                        self.getOppLastAction()
-                        self.flop()
-                elif numBoardCards == 4: #turn                    
-                    self.getLastAction()
-                    self.getOppLastAction()
-                    self.flop()
-                else: #river                    
-                    self.getLastAction()
-                    self.getOppLastAction()
-                    self.flop()
-                
-            elif word == "HANDOVER": #if opp folds and we haven't checked the board, could read the board here
-                pass
-            elif word == "KEYVALUE": #can ignore unless we are storing opp's info between games
-                pass
-            elif word == "REQUESTKEYVALUES":
-                self.socket.send("FINISH\n")
-                
-            #print "time2:" + str(datetime.now() - start2)
-        # Clean up the socket.
-        self.socket.close()
+                self.oppSBRaiseMatrix[raiseRound].pop(0)                
+                  
+    def prepareNewHand(self):
+        self.equity = self.calculator.preflopOdd(
+            [util.card_to_number(card) for card in self.holeCards])
+        self.numPreflopRaises = 0
+        self.isPreflopAggressor = None
 
     # raises and keeps track of the number of pre-flop raises and the last aggressor
+    def preflop(self):
+        if self.position:
+            self.SBPreflop()
+        else:
+            if self.oppLastAction[0] == "CALL": #opp gives up position
+                self.position = True
+                self.SBPreflop()
+            elif self.oppLastAction[0] == "BET":
+                oppRaiseAmount = self.oppLastAction[1]
+                potOdd = self.calPotOdd(oppRaiseAmount)
+                if potOdd >= self.equity:
+                    self.fold()
+                else:
+                    self.preflopRaise(secRaiseRatio*oppRaiseAmount)
+            else: #opp raised
+                oppRaiseAmount = self.oppLastAction[1]
+                potOdd = self.calPotOdd(oppRaiseAmount)
+                if potOdd >= self.equity:
+                    self.fold()
+                else:
+                    self.preflopCall()
+                
+    def flop(self):
+        if "DISCARD" in self.actions:
+            disCard = simpleDiscardWrapper(self.holeCards, self.boardCards)
+            self.discard(disCard)
+        else:        
+            # out of position
+            if not self.button:
+                
+                # opponent has not acted yet
+                if not self.oppLastAction:
+                    if self.isPreflopAggressor:
+                        #we have equity against their range
+                        self.rais(0.75 * self.potSize)
+                    else:
+                        self.check()
+    
+                # our opponent responded by raising
+                else:
+                    if self.boardIsSafe():
+                        # TODO: add in bluff raising logic and take into account opponent history
+                        if self.havePairs() < 3 or self.haveTrips() or self.haveQuads() or self.haveStraight() or self.haveFlush():
+                            self.rais(self.potSize)
+                        elif self.havePairs() < 6 or self.haveOpenEndedStraightDraw() or self.haveFlushDraw():
+                            self.call()
+                        else:
+                            self.fold()
+                    else:
+                        if self.havePairs() < 2 or self.haveTrips() or self.haveFlush() or self.haveQuads():
+                            self.rais(self.potSize)
+                        elif self.havePairs() < 4:
+                            self.call()
+                        else:
+                            self.fold()
+            # in position
+            else:            
+                oppAct = self.oppLastAction[0]
+                # opponent raised
+                if oppAct == "RAISE":
+                    oppRaise = self.oppLastAction[1]
+                    if self.boardIsSafe():
+                        # TODO: add in bluff raising logic and take into account opponent history
+                        if self.havePairs() < 3 or self.haveTrips() or self.haveQuads() or self.haveStraight() or self.haveFlush():
+                            self.rais(self.potSize)
+                        elif self.havePairs() < 6 or self.haveOpenEndedStraightDraw() or self.haveFlushDraw():
+                            self.call()
+                        else:
+                            self.fold()
+                    else:
+                        if self.havePairs() < 2 or self.haveTrips() or self.haveFlush() or self.haveQuads():
+                            self.rais(self.potSize)
+                        elif self.havePairs() < 4:
+                            self.call()
+                        else:
+                            self.fold()
+                # opponent checked
+                elif oppAct == "CHECK":
+                    if self.boardIsSafe():
+                        self.rais(self.potSize)
+                    else:
+                        self.check()
+                else:
+                    self.fold()
+
+    def turn(self):
+        self.flop()
+    
+    def river(self):
+        self.flop()
+
     def preflopRaise(self, raiseAmount):
         self.rais(raiseAmount)
         self.numPreflopRaises += 1
@@ -295,101 +257,20 @@ class preflopBot(Bot):
                 self.preflopRaise(firstRaiseRatio*self.bb)
                 
         elif self.numPreflopRaises == 1: #opp has reraised
-            oppRaiseAmount = self.getOppRaiseAmount()
+            oppRaiseAmount = self.oppLastAction[1]
             potOdd = self.calPotOdd(oppRaiseAmount)
             if potOdd >= self.equity:
                 self.fold()
             else:
                 self.preflopRaise(secRaiseRatio*oppRaiseAmount)
         else: #call or fold if opp has raised twice
-            oppRaiseAmount = self.getOppRaiseAmount()
+            oppRaiseAmount = self.oppLastAction[1]
             potOdd = self.calPotOdd(oppRaiseAmount)
             if potOdd >= self.equity:
                 self.fold()
             else:
                 self.preflopCall()
-
-    def preflop(self):
-        if self.position:
-            self.SBPreflop()
-        else:
-            self.getOppLastAction()
-            if self.oppLastAction.startswith("CALL"): #opp gives up position
-                self.position = True
-                self.SBPreflop()
-            elif self.oppLastAction.startswith("BET"):
-                oppRaiseAmount = self.getOppRaiseAmount()
-                potOdd = self.calPotOdd(oppRaiseAmount)
-                if potOdd >= self.equity:
-                    self.fold()
-                else:
-                    self.preflopRaise(secRaiseRatio*oppRaiseAmount)
-            else: #opp raised
-                oppRaiseAmount = self.getOppRaiseAmount()
-                potOdd = self.calPotOdd(oppRaiseAmount)
-                if potOdd >= self.equity:
-                    self.fold()
-                else:
-                    self.preflopCall()
-                
-    def flop(self):
-        # out of position
-        if not self.button:
-            
-            # opponent has not acted yet
-            if not self.oppLastAction:
-                if self.isPreflopAggressor:
-                    #we have equity against their range
-                    self.rais(0.75 * self.potSize)
-                else:
-                    self.check()
-
-            # our opponent responded by raising
-            else:
-                if self.boardIsSafe():
-                    # TODO: add in bluff raising logic and take into account opponent history
-                    if self.havePairs() < 3 or self.haveTrips() or self.haveQuads() or self.haveStraight() or self.haveFlush():
-                        self.rais(self.potSize)
-                    elif self.havePairs() < 6 or self.haveOpenEndedStraightDraw() or self.haveFlushDraw():
-                        self.call()
-                    else:
-                        self.fold()
-                else:
-                    if self.havePairs() < 2 or self.haveTrips() or self.haveFlush() or self.haveQuads():
-                        self.rais(self.potSize)
-                    elif self.havePairs() < 4:
-                        self.call()
-                    else:
-                        self.fold()
-        # in position
-        else:            
-            oppAct = self.oppLastAction.split(":")[0]
-            # opponent raised
-            if "RAISE" in oppAct:
-                oppRaise = float(self.oppLastAction.split(":")[1])
-                if self.boardIsSafe():
-                    # TODO: add in bluff raising logic and take into account opponent history
-                    if self.havePairs() < 3 or self.haveTrips() or self.haveQuads() or self.haveStraight() or self.haveFlush():
-                        self.rais(self.potSize)
-                    elif self.havePairs() < 6 or self.haveOpenEndedStraightDraw() or self.haveFlushDraw():
-                        self.call()
-                    else:
-                        self.fold()
-                else:
-                    if self.havePairs() < 2 or self.haveTrips() or self.haveFlush() or self.haveQuads():
-                        self.rais(self.potSize)
-                    elif self.havePairs() < 4:
-                        self.call()
-                    else:
-                        self.fold()
-            # opponent checked
-            elif "CHECK" in oppAct:
-                if self.boardIsSafe():
-                    self.rais(self.potSize)
-                else:
-                    self.check()
-            else:
-                self.fold()
+                    
     def boardIsSafe(self):
         bcValuesSorted = self.getCardValues(self.boardCards)
         bcValuesSorted.sort()
@@ -414,6 +295,7 @@ class preflopBot(Bot):
         return True
         
     # [5s, Td, Ac] -> [s, d, c]
+   
     def getCardSuits(self, cards):
         return [c[1] for c in cards]
 
@@ -516,7 +398,7 @@ if __name__ == '__main__':
         print 'Error connecting! Aborting'
         exit()
 
-    bot = preflopBot(s)
+    bot = preflopBot()
     bot.run(s)
 
     

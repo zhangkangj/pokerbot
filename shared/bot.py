@@ -28,15 +28,17 @@ class Bot(object):
         
         self.time = None
         self.recentActions = []
+        
         self.lastActions = None
         self.myLastAction = None
         self.oppLastAction = None
+        
         self.actions = []
         self.minBet = None
         self.maxBet = None
         
     def __init__(self):                
-        self.initialize_match()
+        self.initialize_match()    
         
     # private methods
     def run(self, input_socket):
@@ -100,19 +102,26 @@ class Bot(object):
             self.potSize = int(parts[1])
             self.numBoardCards = int(parts[2])
             self.boardCards = parts[3:3+self.numBoardCards]
+            
+            #get last actions
             numLastActions = int(parts[3+self.numBoardCards])
             lastActionsString = parts[4+self.numBoardCards:(4+self.numBoardCards)+numLastActions] 
             self.lastActions = []
+            self.oppLastAction = None
             for actionString in lastActionsString:
                 temp = actionString.split(":")
                 if len(temp) == 2:
                     self.lastActions.append((temp[0], temp[1]))
+                    if temp[0] == "DEAL": #only opp action after the dealling counts
+                        self.oppLastAction = None
                     if temp[1] == self.oppName:
-                        self.oppLastAction = (temp[0])
+                        self.oppLastAction = [temp[0]]
                 else:
                     self.lastActions.append((temp[0], int(temp[1]), temp[2]))
                     if temp[2] == self.oppName:
-                        self.oppLastAction = (temp[0], temp[1])
+                        self.oppLastAction = [temp[0], int(temp[1])]
+                        
+            #get actions
             offset = 4 + self.numBoardCards + numLastActions
             numLegalActions = int(parts[offset])
             actionsString = parts[1+offset:1+offset+numLegalActions]
@@ -133,7 +142,6 @@ class Bot(object):
                 self.turn()
             else: #river                    
                 self.river()
-
     # public methods
     def prepareNewHand(self):
         pass
@@ -160,25 +168,32 @@ class Bot(object):
     #actions
     def check(self):
         #print "checking"
-        self.myLastAction = ("CHECK")
+        self.myLastAction = ["CHECK"]
         self.sendMessage("CHECK")
         
     def call(self):
         #print "calling"
-        self.myLastAction = ("CALL")
+        self.myLastAction = ["CALL"]
         self.sendMessage("CALL")
     
     def rais(self, amount):
-        self.myLastAction = ("RAISE", amount)
-        self.sendMessage("RAISE:" + str(amount))
+        amount = min(self.maxBet, max(self.minBet, amount))
+        
+        if "RAISE" in self.actions:
+            self.myLastAction = ["RAISE", amount]
+            self.sendMessage("RAISE:" + str(amount))
+        elif "BET" in self.actions:
+            self.bet(amount)
+        else:
+            self.call()
     
     def bet(self, amount):
         #print "betting:"+str(amount)
-        self.myLastAction = ("BET", amount)
+        self.myLastAction = ["BET", amount]
         self.sendMessage("BET:" + str(amount))
     
     def fold(self):
-        self.myLastAction = ("FOLD")
+        self.myLastAction = ["FOLD"]
         self.sendMessage("FOLD")
         
     def discard(self, card):
