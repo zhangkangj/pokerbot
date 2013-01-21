@@ -71,7 +71,7 @@ def number_to_card(n):
     elif suit == 3:
         suit = "c"
     else:
-        raise Exception("suit error")
+        raise Exception("suit error:" + str(n))
     return rank + suit
 
 def card_to_number(card):
@@ -135,9 +135,10 @@ def unhash_cards(hashCode, n):
 def sample_distribution(population, counts):
     result = []
     for i in range(len(population)):
-        indices = np.random.random_integers(0, len(population[i])-1, counts[i])
-        for j in indices:
-            result.append(population[i][j])
+        if len(population[i]) != 0 and counts[i] != 0:
+            indices = np.random.random_integers(0, len(population[i])-1, counts[i])
+            for j in indices:
+                result.append(population[i][j])
     return result
     
 if __name__ == '__main__':

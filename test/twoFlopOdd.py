@@ -6,10 +6,12 @@ Created on Jan 16, 2013
 
 from shared.pbots_calc import calc
 from shared.util import number_to_card, card_to_number, draw_cards, hash_cards
+from shared.calculator import Calculator
 from datetime import datetime
 from random import random 
 from threading import Thread
 import numpy as np
+
 
 def computeTwoFlopOdd(index = 0, start = 0, end = 52):
     out = open("dat/twoFlopOdd" + str(index) + ".csv", "w")
@@ -94,7 +96,7 @@ if __name__ == '__main__':
 #    allvalues = np.load("dat/allvalues.npy")
 #    flopKeys = np.load("dat/keys.npy")
 #    flopValues = np.load("dat/values.npy")
-    keys = np.load("dat/flopodds.npy")
+    cal = Calculator()
     cards = draw_cards(5, True)
     hand = cards[0:2]
     board = cards[2:5] 
@@ -106,6 +108,16 @@ if __name__ == '__main__':
     print cards, hashCode
     print calc(handstring + ":xx", boardstring, "", 1000).ev[0]
     print calc(handstring + ":xx", boardstring, "", 50000).ev[0]
-    print keys[hashCode%140608][hashCode/140608]
+    
+    from datetime import datetime
+    start = datetime.now()
+    cards = draw_cards(6, True)
+    hand = cards[0:3]
+    board = cards[3:6] 
+    hand.sort()
+    board.sort()
+    for i in range(5000):
+        cal.flopOddNaive(cards, board)
+    print "time:" + str(datetime.now() - start)
 
     

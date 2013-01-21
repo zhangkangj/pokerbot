@@ -61,9 +61,10 @@ class Calculator:
         return sample_distribution(self.preflopBucket, counts)
 
     #flop methods
-    def twoFlopOdd(self, cards, board):
-        hashCode = hash_cards(cards + board)
-        return self.keys[hashCode%140608][hashCode/140608]
+    def twoFlopOdd(self, hand, board):
+#        hashCode = hash_cards(cards + board)
+#        return self.keys[hashCode%140608][hashCode/140608]
+        return self.keys[hash_cards(board)][hash_cards(hand)]
 
     def flopOddNaive(self, cards, board):
         odd1 = self.twoFlopOdd([cards[0], cards[1]], board)
@@ -111,38 +112,55 @@ class Calculator:
                 return myCards[1], myCards[2], prob3, opCards
     
     def sampleFlop(self, board, preflopWeights, flopWeights, sampleSize):
+        board.sort()
         if preflopWeights == None and flopWeights == None:
             opCards = sample(self.holeCards, sampleSize)
         elif flopWeights == None:
             opCards = self.samplePreflop(preflopWeights, sampleSize)
         else:
-            weights = [0] * 10
+            weights = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             if preflopWeights == None:
-                preflopCards = self.holeCards
+                preflopCards = sample(self.holeCards, 2000)
             else:
-                preflopCards = self.samplePreflop(preflopWeights, 22100)
+                preflopCards = self.samplePreflop(preflopWeights, 2000)
             for cards in preflopCards:
                 if cards[0] in board or cards[1] in board or cards[2] in board:
                     continue
                 odd = self.flopOddNaive(cards, board)[2]
-                weights[int(odd * 10)] += 1            
-            flopOdds = self.flopOddTable(flopWeights, board)
-            counts = [int(round(x * sampleSize / 22100)) for x in weights]
-            opCards = sample_distribution(flopOdds, counts)
+                index = min(int(odd * 10), 9)
+                weights[index] += 1
+            
+            flopOddTable = self.getFlopOddTable(board, flopWeights)
+            counts = [a * len(b) for a ,b in zip(weights, flopOddTable)]
+            s = 1.0 * sampleSize / sum(counts)
+            counts = [round(x * s) for x in counts]
+            opCards = sample_distribution(flopOddTable, counts)
         return opCards
 
-    def flopOddTable(self, weights, board, buckets = 10):
+    def getFlopOddTable(self, board, weights, buckets = 10):
+        board.sort()
+        temp = [[] for i in range(buckets)]
         result = [[] for i in range(buckets)] 
-        for i in range(buckets):
-            result[i] = []
         for i in range(0,52):
             for j in range(i+1,52):
                 if i in board or j in board:
                     continue
                 odd = self.twoFlopOdd([i, j], board)
                 index = int(odd * 10)
-                result[index].append((i,j,odd))
-    
+                if index == buckets:
+                    index = buckets -1
+                temp[index].append((i,j,odd))
+        counts = [a * len(b) for a, b in zip(weights, temp)]
+        s = 1326.0 / sum(counts)
+        counts = [round(x*s) for x in counts]
+        for i in range(buckets):
+            if len(temp[i]) != 0 and counts[i] != 0:
+                indices = np.random.random_integers(0, len(temp[i])-1, counts[i])
+                for j in indices:
+                    result[i].append(temp[i][j])
+        return result
+
+    #turn, river method
     def turnRiverOdd(self, myCards, board, opCards = None, iterations = 10000, cardStrings = None, boardString = None):
         myCards.sort()
         board.sort()
@@ -216,15 +234,15 @@ if __name__ == '__main__':
     from util import draw_cards, n2c
     from datetime import datetime
     
-    calculator = Calculator()
+    cal = Calculator()
     start = datetime.now()
     cards = draw_cards(6, True)
     print cards, n2c(cards)
-    for i in range(10):
-        weights = [0] * 10
-        weights[i] = 1
-        print calculator.preflopOdd(cards, weights)
-    weights = [0.1] * 10
-    print calculator.preflopOdd(cards, weights)
-    print calculator.preflopOdd(cards)
+    weights1 = [0,0,0,0,0,0,0,0,0,1]
+    weights2 = [0,0,0,0,0,0,0,0.3,.3,.4]
+    
+    for i in range(1):
+        result = cal.sampleFlop(cards[0:3], None, weights2, 10)
+    print [(n2c(x[0:2]),x[2]) for x in result]
+    
     print "time:" + str(datetime.now() - start)
