@@ -84,12 +84,12 @@ class Calculator:
         myCardsString = "".join([number_to_card(x) for x in myCards])
         totalProb = n = 0
         for opCard in opCards:
-                if opCard[0] in myCards or opCard[0] in board or opCard[1] in myCards or opCard[1] in board or opCard[2] in myCards or opCard[2] in board:
-                    continue
-                n += 1
-                opBest = self.flopOddNaive(opCard, board[0:3])
-                opBestString = number_to_card(opBest[0]) + number_to_card(opBest[1])
-                totalProb += calc(myCardsString + ":" + opBestString, boardString, "", iterations).ev[0]
+            if opCard[0] in myCards or opCard[0] in board or opCard[1] in myCards or opCard[1] in board or opCard[2] in myCards or opCard[2] in board:
+                continue
+            n += 1
+            opBest = self.flopOddNaive(opCard, board[0:3])
+            opBestString = number_to_card(opBest[0]) + number_to_card(opBest[1])
+            totalProb += calc(myCardsString + ":" + opBestString, boardString, "", iterations).ev[0]
         return totalProb / n
 
     def flopOdd(self, myCards, board, opCards = None, preflopWeights = None, flopWeights = None, sampleSize = 300):
@@ -100,9 +100,6 @@ class Calculator:
             opCards = self.sampleFlop(board, preflopWeights, flopWeights, sampleSize)
         myCards0 = simpleDiscard(myCards, board)
         if len(myCards0) == 0:
-            prob0 = self.computeOdd(myCards0, board, opCards, boardString)
-            return myCards0[0], myCards0[1], prob0, opCards
-        else:                
             prob1 = self.computeOdd(myCards[0:2], board, opCards, boardString)
             prob2 = self.computeOdd([myCards[0],myCards[2]], board, opCards, boardString)
             prob3 = self.computeOdd(myCards[1:3], board, opCards, boardString)
@@ -112,6 +109,9 @@ class Calculator:
                 return myCards[0], myCards[2], prob2, opCards
             else:
                 return myCards[1], myCards[2], prob3, opCards
+        else:
+            prob0 = self.computeOdd(myCards0, board, opCards, boardString)
+            return myCards0[0], myCards0[1], prob0, opCards
     
     def sampleFlop(self, board, preflopWeights, flopWeights, sampleSize):
         board.sort()
@@ -122,9 +122,9 @@ class Calculator:
         else:
             weights = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             if preflopWeights == None:
-                preflopCards = sample(self.holeCards, 2000)
+                preflopCards = sample(self.holeCards, 500)
             else:
-                preflopCards = self.samplePreflop(preflopWeights, 2000)
+                preflopCards = self.samplePreflop(preflopWeights, 500)
             for cards in preflopCards:
                 if cards[0] in board or cards[1] in board or cards[2] in board:
                     continue
@@ -136,7 +136,6 @@ class Calculator:
             counts = [a * b for a ,b in zip(weights, flopWeights)]
             s = 1.0 * sampleSize / sum(counts)
             counts = [round(x * s) for x in counts]
-            print counts
             opCards = sample_distribution(flopOddTable, counts)
         return opCards
 
@@ -227,13 +226,13 @@ if __name__ == '__main__':
     
     cal = Calculator()
     start = datetime.now()
-    cards = draw_cards(3, True)
+    cards = draw_cards(6, True)
     print cards, n2c(cards)
-    weights1 = [0,0,0,0,0,0,0,0,0,1]
-    weights2 = [0,0,0,0,0,0,.3,.3,.3,.1]
+    weights1 = [0,0,0,0,0,1,1,1,1,0]
+    weights2 = [0,0,0,.3,.2,.1,.1,.1,.1,.1]
     
-    for i in range(1):
-        result = cal.sampleFlop(cards[0:3], weights1, weights2, 10)
-    print [(n2c(x[0:2]),x[2]) for x in result]
+    for i in range(10):
+        result = cal.flopOdd(cards[0:3], cards[3:6], None, weights1, weights2, 100)
+        print (n2c(result[0:2]),result[2])
     
     print "time:" + str(datetime.now() - start)

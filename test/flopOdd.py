@@ -31,7 +31,7 @@ if __name__ == '__main__':
         cards = draw_cards(6, True)
         myCards = cards[0:3]
         board = cards[3:6]
-        calculator.flopOdd(myCards, board, None, 300)
+        calculator.flopOdd(myCards, board, None, None, None, 1000)
     print "time:" + str(datetime.now() - start)
 
 #    cards = draw_cards(6, True)

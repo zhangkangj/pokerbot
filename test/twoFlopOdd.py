@@ -36,7 +36,7 @@ def computeTwoFlopOdd(index = 0, start = 0, end = 52):
 def merge():
     n = 0
     out = open("dat/twoFlopOdd.csv", "w")
-    for i in range(1,11):
+    for i in range(0,12):
         f = open("dat/twoFlopOdd" + str(i) + ".csv")
         for line in f.readlines():
             n += 1
@@ -92,10 +92,6 @@ def process2():
     np.save("dat/flopOdd.npy", keys)
     
 if __name__ == '__main__':
-#    allkeys = np.load("dat/allkeys.npy")
-#    allvalues = np.load("dat/allvalues.npy")
-#    flopKeys = np.load("dat/keys.npy")
-#    flopValues = np.load("dat/values.npy")
     cal = Calculator()
     cards = draw_cards(5, True)
     hand = cards[0:2]
@@ -107,17 +103,18 @@ if __name__ == '__main__':
     boardstring = "".join([number_to_card(x) for x in board])
     print cards, hashCode
     print calc(handstring + ":xx", boardstring, "", 1000).ev[0]
-    print calc(handstring + ":xx", boardstring, "", 50000).ev[0]
-    
-    from datetime import datetime
-    start = datetime.now()
-    cards = draw_cards(6, True)
-    hand = cards[0:3]
-    board = cards[3:6] 
-    hand.sort()
-    board.sort()
-    for i in range(5000):
-        cal.flopOddNaive(cards, board)
-    print "time:" + str(datetime.now() - start)
+    print calc(handstring + ":xx", boardstring, "", 100000).ev[0]
+    print cal.twoFlopOdd(hand, board)
+#    
+#    from datetime import datetime
+#    start = datetime.now()
+#    cards = draw_cards(6, True)
+#    hand = cards[0:3]
+#    board = cards[3:6] 
+#    hand.sort()
+#    board.sort()
+#    for i in range(5000):
+#        cal.flopOddNaive(cards, board)
+#    print "time:" + str(datetime.now() - start)
 
     

@@ -27,7 +27,7 @@ def preflopOdd(myCards, opCards = None, sampleSize = 400):
                     continue
                 n += 1
                 board = [i, j, k]
-                totalProb += calculator.flopOdd(myCards, board, opCards, None, None, 400)[2]
+                totalProb += calculator.flopOdd(myCards, board, opCards, None, None, 1000)[2]
     odd = totalProb / n
     return odd
 
@@ -43,7 +43,7 @@ def computePreFlopOdd(index = 0, start = 0, end = 52):
                 if hashCodeReduced in preflopOdds:
                     odd = preflopOdds[hashCodeReduced]
                 else:
-                    odd = preflopOdd([i,j,k], None, 1000)
+                    odd = preflopOdd([i,j,k], None, 500)
                     preflopOdds[hashCodeReduced] = odd
                 out.write(str(hashCode) + "," + str(odd) + "\n")
                 out.flush()
@@ -60,7 +60,7 @@ def computeRangedPreFlopOdd(index = 0, opCards = None):
                 if hashCodeReduced in preflopOdds:
                     odd = preflopOdds[hashCodeReduced]
                 else:
-                    odd = preflopOdd([i,j,k], opCards, 400)
+                    odd = preflopOdd([i,j,k], opCards, 500)
                     preflopOdds[hashCodeReduced] = odd
                 out.write(str(hashCode) + "," + str(odd) + "\n")
                 out.flush()
@@ -101,18 +101,22 @@ def mergeRanged():
                     
 if __name__ == '__main__':
     calculator = Calculator()
-    start = datetime.now()
-    cards = draw_cards(3, True)
-#    cards = c2n(["Ah", "Ac", "2s"])
-    print n2c(cards)
-    print calculator.preflopOdd(cards)
-    print preflopOdd(cards, None, sampleSize = 10000)
-    #print preflopOdd(myCards, None, 400)
-    print "time:" + str(datetime.now() - start)
-
-#    index = 9
-#    weights = [0] * 100
-#    for i in range(index*10, index*10+10):
-#        weights[i] = 0.1
-#    opCards = calculator.sampleCards(weights, 600)
-#    print computeRangedPreFlopOdd(index, opCards)
+#    start = datetime.now()
+#    cards = draw_cards(3, True)
+    #cards = c2n(["Ah", "Ac", "2s"])
+#    print n2c(cards)
+#    print calculator.preflopOdd(cards)
+#    print preflopOdd(cards, None, sampleSize = 500)
+#    print preflopOdd(cards, None, sampleSize = 500)
+#    print preflopOdd(cards, None, sampleSize = 500)
+#    print preflopOdd(cards, None, sampleSize = 500)
+#    print preflopOdd(cards, None, sampleSize = 500)
+#    #print preflopOdd(myCards, None, 400)
+#    print "time:" + str(datetime.now() - start)
+    
+    index = 9
+    weights = [0] * 10
+    weights[index] = 1
+    opCards = calculator.samplePreflop(weights, 600)
+    print opCards
+    print computeRangedPreFlopOdd(index, opCards)
