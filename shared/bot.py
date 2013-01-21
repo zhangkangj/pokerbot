@@ -28,15 +28,17 @@ class Bot(object):
         
         self.time = None
         self.recentActions = []
+        
         self.lastActions = None
         self.myLastAction = None
         self.oppLastAction = None
+        
         self.actions = []
         self.minBet = None
         self.maxBet = None
         
     def __init__(self):                
-        self.initialize_match()
+        self.initialize_match()    
         
     # private methods
     def run(self, input_socket):
@@ -100,6 +102,8 @@ class Bot(object):
             self.potSize = int(parts[1])
             self.numBoardCards = int(parts[2])
             self.boardCards = parts[3:3+self.numBoardCards]
+            
+            #get last actions
             numLastActions = int(parts[3+self.numBoardCards])
             lastActionsString = parts[4+self.numBoardCards:(4+self.numBoardCards)+numLastActions] 
             self.lastActions = []
@@ -112,7 +116,9 @@ class Bot(object):
                 else:
                     self.lastActions.append((temp[0], int(temp[1]), temp[2]))
                     if temp[2] == self.oppName:
-                        self.oppLastAction = (temp[0], temp[1])
+                        self.oppLastAction = (temp[0], int(temp[1]))
+                        
+            #get actions
             offset = 4 + self.numBoardCards + numLastActions
             numLegalActions = int(parts[offset])
             actionsString = parts[1+offset:1+offset+numLegalActions]
