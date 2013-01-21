@@ -27,7 +27,7 @@ def preflopOdd(myCards, opCards = None, sampleSize = 400):
                     continue
                 n += 1
                 board = [i, j, k]
-                totalProb += calculator.flopOdd(myCards, board, opCards, None, None, 1000)[2]
+                totalProb += calculator.flopOdd(myCards, board, opCards, None, None, 500)[2]
     odd = totalProb / n
     return odd
 
@@ -103,17 +103,17 @@ if __name__ == '__main__':
     calculator = Calculator()
     start = datetime.now()
     cards = draw_cards(3, True)
-    cards = c2n(["Ah", "Ac", "2s"])
-    print n2c(cards)
-    print calculator.preflopOdd(cards)
-    print preflopOdd(cards, None, sampleSize = 500)
-    print preflopOdd(cards, None, sampleSize = 500)
-    print preflopOdd(cards, None, sampleSize = 500)
-    print preflopOdd(cards, None, sampleSize = 500)
-    print preflopOdd(cards, None, sampleSize = 500)
-    #print preflopOdd(myCards, None, 400)
-    print "time:" + str(datetime.now() - start)
-    
+#    cards = c2n(["Ah", "Ac", "2s"])
+#    print n2c(cards)
+#    print calculator.preflopOdd(cards)
+#    print preflopOdd(cards, None, sampleSize = 500)
+#    print preflopOdd(cards, None, sampleSize = 500)
+#    print preflopOdd(cards, None, sampleSize = 500)
+#    print preflopOdd(cards, None, sampleSize = 500)
+#    print preflopOdd(cards, None, sampleSize = 500)
+#    #print preflopOdd(myCards, None, 400)
+#    print "time:" + str(datetime.now() - start)
+
 #    index = 9
 #    weights = [0] * 10
 #    weights[index] = 1

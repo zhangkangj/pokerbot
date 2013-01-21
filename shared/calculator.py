@@ -88,10 +88,6 @@ class Calculator:
         for opCard in opCards:
             if opCard[0] in myCards or opCard[0] in board or opCard[1] in myCards or opCard[1] in board:
                 continue
-#            opBest = self.flopOddNaive(opCard, board[0:3])
-#            opBestString = number_to_card(opBest[0]) + number_to_card(opBest[1])
-#            print (opCard[0]*52 + opCard[1]).__class__
-#            if twoCards:
             if len(opCards[0]) == 3:
                 if opCard[2] in board or opCard[2] in myCards:
                     continue     
@@ -105,12 +101,12 @@ class Calculator:
                 else:
                     opBestString = number_to_card(opCard[1]) + number_to_card(opCard[2])
             else:
-                opBestString = "".join([number_to_card(x) for x in opCard[0:2]])    
+                opBestString = "".join(n2c(opCard))    
             totalProb += calc(myCardsString + ":" + opBestString, boardString, "", iterations).ev[0]
             n += 1
         return totalProb / n
 
-    def flopOdd(self, myCards, board, opCards = None, preflopWeights = None, flopWeights = None, sampleSize = 100):
+    def flopOdd(self, myCards, board, opCards = None, preflopWeights = None, flopWeights = None, sampleSize = 300):
         myCards.sort()
         board.sort()
         boardString = "".join([number_to_card(x) for x in board])
@@ -253,7 +249,7 @@ if __name__ == '__main__':
     weights2 = [0,0,0,.1,.2,.1,.2,.2,.1,.1]
     
     for i in range(10):
-        result = cal.flopOdd(cards[0:3], cards[3:6], None, None, None, 300)
+        result = cal.flopOdd(cards[0:3], cards[3:6], None, weights1, weights2, 300)
         print (n2c(result[0:2]),result[2])
         #result = cal.sampleFlop(cards[0:3], weights1, weights2, 1000)
     
