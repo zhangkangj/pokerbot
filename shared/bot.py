@@ -72,7 +72,9 @@ class Bot(object):
             self.numBoardCards = 0
             self.recentActions = []
             self.oppLastAction = None
-        elif word == "HANDOVER": #if opp folds and we haven't checked the board, could read the board here
+            
+            self.prepareNewHand()
+        elif word == "HANDOVER":
             self.myBank.append(int(parts[1]))
             self.numBoardCards = int(parts[3])
             self.boardCards = parts[3:3+self.numBoardCards]            
@@ -133,6 +135,9 @@ class Bot(object):
                 self.river()
 
     # public methods
+    def prepareNewHand(self):
+        pass
+    
     def preflop(self):
         self.check()
     
