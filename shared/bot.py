@@ -38,6 +38,7 @@ class Bot(object):
         self.actions = []
         self.minBet = None
         self.maxBet = None
+        self.raiseRound = None
         
     def __init__(self):                
         self.initialize_match()    
@@ -76,6 +77,7 @@ class Bot(object):
             self.numBoardCards = 0
             self.recentActions = []
             self.oppLastAction = None
+            self.raiseRound = 0
             
             self.prepareNewHand()
         elif word == "HANDOVER":
@@ -114,8 +116,8 @@ class Bot(object):
                 temp = actionString.split(":")
                 if len(temp) == 2:
                     self.lastActions.append((temp[0], temp[1]))
-                    if temp[0] == "DEAL": #only opp action after the dealling counts
-                        self.oppLastAction = None
+                    if temp[0] == "DEAL": #the start of each new street resets raiseRound
+                        self.raiseRound = 0
                     if temp[1] == self.oppName:
                         self.oppLastAction = [temp[0]]
                 else:
@@ -135,6 +137,7 @@ class Bot(object):
                     self.minBet = int(temp[1])
                     self.maxBet = int(temp[2])
             self.time = float(parts[1+offset+numLegalActions]) 
+            self.raiseRound += 1                
                 
             if self.numBoardCards == 0: #preflop
                 self.preflop()
@@ -143,8 +146,7 @@ class Bot(object):
             elif self.numBoardCards == 4: #turn                    
                 self.turn()
             else: #river                    
-                self.river()
-                
+                self.river()            
     # public methods
     def prepareNewHand(self):
         pass
