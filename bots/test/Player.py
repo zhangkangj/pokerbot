@@ -79,7 +79,7 @@ class Player(Bot):
                         else:
                             self.flopWeights = [1,2,2,2,2,2,3,2,2,1]
                         minBet = self.oppLastAction[1] * 2 - self.potSize
-                        result = self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards), None, self.preflopWeights, self.flopWeights, 200)
+                        result = self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards), None, self.preflopWeights, self.flopWeights, 180)
                         self.keptCards = n2c((result[0], result[1]))
                         self.equity = result[2]
                         self.opCards = result[3]
@@ -94,7 +94,7 @@ class Player(Bot):
                         else:
                             self.fold()                        
                 else: #we move first
-                    result = self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards), None, self.preflopWeights, None, 200)
+                    result = self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards), None, self.preflopWeights, None, 180)
                     self.keptCards = n2c((result[0], result[1]))
                     self.equity = result[2] 
                     self.opCards = result[3]
