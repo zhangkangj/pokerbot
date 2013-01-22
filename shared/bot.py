@@ -124,6 +124,7 @@ class Bot(object):
                     self.lastActions.append((temp[0], int(temp[1]), temp[2]))
                     if temp[2] == self.oppName:
                         self.oppLastAction = [temp[0], int(temp[1])]
+            self.recentActions.extend(self.lastActions)
                         
             #get actions
             offset = 4 + self.numBoardCards + numLastActions
@@ -146,7 +147,9 @@ class Bot(object):
             elif self.numBoardCards == 4: #turn                    
                 self.turn()
             else: #river                    
-                self.river()            
+                self.river()
+                
+                      
     # public methods
     def prepareNewHand(self):
         pass
