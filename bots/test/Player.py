@@ -1,9 +1,9 @@
 import argparse
 import socket
 
-from random import sample, randrange, random
+from random import randrange
 from shared.bot import Bot
-from shared.util import c2n
+from shared.util import c2n, n2c
 
 """
 Simple example pokerbot, written in python.
@@ -16,32 +16,34 @@ class Player(Bot):
     def __init__(self):
         Bot.__init__(self)
         self.preflopWeights = []
+        self.flopWeights = []
+        self.opCards = []
+        self.keptCards = []
 
     def preflop(self):
-        print self.raiseRound
         if self.raiseRound == 0:
             rank = self.cal.preflopRank(c2n(self.holeCards))
             if rank < 0.02:
                 self.fold()
             else:
                 self.rais(7)
+            self.preflopWeights = [1,1,2,2,2,2,2,2,1,1]
         elif self.oppLastAction[0] == "CALL":
             self.preflopWeights = [1,1,2,2,2,2,2,2,1,1]
             self.rais(7)
         elif self.oppLastAction[0] == "RAISE":
-            totalRaise = self.potSize - (self.potSize - self.oppLastAction[1]) / 2
             minBet = self.oppLastAction[1] * 2 - self.potSize
-            if totalRaise > 100:
+            if self.oppLastAction[1] * 2 - self.potSize > 100:
                 self.preflopWeights = [1,1,1,1,1,3,3,3,3,3]
             else:
                 self.preflopWeights = [1,1,2,2,2,2,3,3,2,1]
-            equity = self.cal.preflopOdd(c2n(self.holeCards), self.preflopWeights)
-            if equity > 0.5:
+            self.equity = self.cal.preflopOdd(c2n(self.holeCards), self.preflopWeights)
+            if self.equity > 0.5:
                 if self.minBet == None or self.maxBet == None:
                     self.call()
                 else:
                     self.rais(min(self.maxBet, self.oppLastAction[1]))
-            elif equity > 1.0 * minBet / (self.potSize + minBet):
+            elif self.equity > 1.0 * minBet / (self.potSize + minBet):
                 self.call()
             else:
                 self.fold()
@@ -51,34 +53,79 @@ class Player(Bot):
         
     def flop(self):
         if "DISCARD" in self.actions:
-            self.discard(self.holeCards[randrange(0,3)])
+            for card in self.holeCards:
+                if card not in self.keptCards:
+                    self.discard(card)
         else:
             if self.raiseRound == 0:
-                print 123
-            self.turn()
+                if self.button:#opp move first
+                    if self.oppLastAction[0] == "CHECK":
+                        self.flopWeights = [2,3,3,3,3,2,2,2,2,2]
+                        result = self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards), None, self.preflopWeights, self.flopWeights, 200)
+                        self.keptCards = n2c((result[0], result[1]))
+                        self.equity = result[2]
+                        self.opCards = result[3]
+                        if self.equity < 0.5:
+                            self.bet(self.minBet)
+                        elif self.equity > 0.75:
+                            self.bet(max(min(self.potSize / 2, self.maxBet), self.minBet))
+                        else:
+                            self.bet(max(min(self.potSize, self.maxBet), self.minBet))
+                    else:
+                        if  self.oppLastAction[1] * 2 - self.potSize > 100:
+                            self.flopWeights = [1,2,2,2,2,3,3,3,2,1]
+                        else:
+                            self.flopWeights = [1,2,2,2,2,2,3,2,2,1]
+                        minBet = self.oppLastAction[1] * 2 - self.potSize
+                        result = self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards), None, self.preflopWeights, self.flopWeights, 200)
+                        self.keptCards = n2c((result[0], result[1]))
+                        self.equity = result[2]
+                        self.opCards = result[3]
+                        if self.equity > 0.5:
+                            if self.minBet == None or self.maxBet == None:
+                                self.call()
+                            else:
+                                self.rais(min(self.maxBet, self.oppLastAction[1]))
+                        elif self.equity > 1.0 * minBet / (self.potSize + minBet):
+                            self.call()
+                        else:
+                            self.fold()                        
+                else: #we move first
+                    result = self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards), None, self.preflopWeights, None, 200)
+                    self.keptCards = n2c((result[0], result[1]))
+                    self.equity = result[2] 
+                    self.opCards = result[3]
+                    if self.equity < 0.5:
+                        self.bet(self.minBet)
+                    elif self.equity > 0.75:
+                        self.bet(max(min(self.potSize / 2, self.maxBet), self.minBet))
+                    else:
+                        self.bet(max(min(self.potSize, self.maxBet), self.minBet))
+            else: # after 1st round
+                if  self.oppLastAction[1] * 2 - self.potSize > 100:
+                    self.flopWeights = [a+b for a,b in zip([1,2,2,2,2,3,3,3,2,1],self.flopWeights)]
+                else:
+                    self.flopWeights = [a+b for a,b in zip([1,2,2,2,2,3,3,3,2,1],self.flopWeights)]
+                minBet = self.oppLastAction[1] * 2 - self.potSize
+                result = self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards), None, self.preflopWeights, self.flopWeights, 100)
+                self.keptCards = n2c((result[0], result[1]))
+                self.equity = result[2]
+                self.opCards = result[3]
+                if self.equity > 0.5:
+                    if self.minBet == None or self.maxBet == None:
+                        self.call()
+                    else:
+                        self.rais(min(self.maxBet, self.oppLastAction[1]))
+                elif self.equity > 1.0 * minBet / (self.potSize + minBet):
+                    self.call()
+                else:
+                    self.fold()
     
     def turn(self):
-        action = sample(self.actions, 1)[0]
-        if action == "CHECK":
-            self.check()
-        elif action == "CALL":
-            self.call()
-        elif action == "FOLD":
-            if random () < 0.5:
-                self.call()
-            else:
-                self.fold()
-        elif action == "RAISE":
-            amount = randrange(self.minBet, self.maxBet + 1)
-            self.rais(amount)
-        elif action == "BET":
-            amount = randrange(self.minBet, self.maxBet + 1)
-            self.bet(amount)
-        else:
-            print action, self.actions
+        self.call()
 
     def river(self):
-        self.turn()
+        self.call()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A Pokerbot.', add_help=False, prog='pokerbot')

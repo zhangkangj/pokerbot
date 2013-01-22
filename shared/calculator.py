@@ -6,7 +6,7 @@ Created on Jan 10, 2013
 '''
 
 from shared.pbots_calc import calc
-from util import number_to_card, c2n, hash_cards, unhash_cards, sample_distribution
+from util import number_to_card, n2c, c2n, hash_cards, unhash_cards, sample_distribution
 from random import sample
 import numpy as np
 
