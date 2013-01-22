@@ -29,6 +29,7 @@ class Player(Bot):
             self.rais(7)
         elif self.oppLastAction[0] == "RAISE":
             totalRaise = self.potSize - (self.potSize - self.oppLastAction[1]) / 2
+            minBet = self.oppLastAction[1] * 2 - self.potSize
             if totalRaise > 100:
                 self.preflopWeights = [1,1,1,1,1,1,1,3,3,3]
             else:
@@ -39,10 +40,8 @@ class Player(Bot):
                     self.call()
                 else:
                     self.rais(min(self.maxBet, self.oppLastAction[1]))
-            elif "CALL" in self.actions:
-                minBet = self.oppLastAction[1] * 2 - self.potSize
-                if 1.0 * minBet / (self.potSize + minBet):
-                    self.call()
+            elif equity > 1.0 * minBet / (self.potSize + minBet):
+                self.call()
             else:
                 self.fold()
 #            print self.oppLastAction, totalRaise, equity, 1.0 * (self.oppLastAction[1] * 2 - self.potSize) / (self.oppLastAction[1] * 2)
