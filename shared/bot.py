@@ -6,7 +6,7 @@ Created on Jan 8, 2013
 
 from shared.calculator import Calculator
 from shared.statistician import Statistician
-import time
+from time import time
 
 class Bot(object):
 
