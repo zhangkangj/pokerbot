@@ -6,7 +6,7 @@ Created on Jan 8, 2013
 
 from shared.calculator import Calculator
 from shared.statistician import Statistician
-from time import time
+import time
 
 class Bot(object):
 
@@ -54,6 +54,7 @@ class Bot(object):
                 print "Gameover, engine disconnected."
                 break
             self.handleMessage(message)
+            time.sleep(3)
         # Clean up the socket.
         self.socket.close()
     
