@@ -49,11 +49,13 @@ class Bot(object):
         self.socket = input_socket
         f_in = input_socket.makefile()
         while True:
+            print 1
             received = str(time() - 1300000000)
             message = f_in.readline().strip()
             if not message:
                 print "Gameover, engine disconnected."
                 break
+            print 2
             self.handleMessage(message)
             responded = str(time() - 1300000000)
             print message + "\t|rec:" + received + "|res:" + responded

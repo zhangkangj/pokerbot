@@ -18,23 +18,24 @@ class Player(Bot):
         self.preflopWeights = []
 
     def preflop(self):
-        if self.oppLastAction == None or self.oppLastAction[0] == "POST":
+        print self.raiseRound
+        if self.raiseRound == 0:
             rank = self.cal.preflopRank(c2n(self.holeCards))
-            if rank < 0.05:
+            if rank < 0.02:
                 self.fold()
             else:
                 self.rais(7)
         elif self.oppLastAction[0] == "CALL":
-            self.preflopWeights = [1,2,3,3,3,3,3,3,2,1]
+            self.preflopWeights = [1,1,2,2,2,2,2,2,1,1]
             self.rais(7)
         elif self.oppLastAction[0] == "RAISE":
             totalRaise = self.potSize - (self.potSize - self.oppLastAction[1]) / 2
             minBet = self.oppLastAction[1] * 2 - self.potSize
             if totalRaise > 100:
-                self.preflopWeights = [1,1,1,1,1,1,1,3,3,3]
+                self.preflopWeights = [1,1,1,1,1,3,3,3,3,3]
             else:
-                self.preflopWeights = [1,1,1,1,1,3,3,3,2,1]
-            equity = self.cal.preflopOdd(c2n(self.holeCards), self.preflopWeights) - 0.1
+                self.preflopWeights = [1,1,2,2,2,2,3,3,2,1]
+            equity = self.cal.preflopOdd(c2n(self.holeCards), self.preflopWeights)
             if equity > 0.5:
                 if self.minBet == None or self.maxBet == None:
                     self.call()
@@ -45,7 +46,6 @@ class Player(Bot):
             else:
                 self.fold()
 #            print self.oppLastAction, totalRaise, equity, 1.0 * (self.oppLastAction[1] * 2 - self.potSize) / (self.oppLastAction[1] * 2)
-#            print self.minBet, min(self.maxBet, self.minBet * 3), self.potSize
         else:
             print self.oppLastAction
         
@@ -53,6 +53,8 @@ class Player(Bot):
         if "DISCARD" in self.actions:
             self.discard(self.holeCards[randrange(0,3)])
         else:
+            if self.raiseRound == 0:
+                print 123
             self.turn()
     
     def turn(self):
@@ -75,7 +77,6 @@ class Player(Bot):
         else:
             print action, self.actions
 
-    
     def river(self):
         self.turn()
 

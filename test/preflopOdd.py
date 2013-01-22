@@ -104,12 +104,12 @@ if __name__ == '__main__':
     start = datetime.now()
     for i in range(1):
         cards = draw_cards(3, True)
-        cards = c2n(["As", "Ad", "Ts"])
+        cards = c2n("4c 6c Qd".split(" "))
         print n2c(cards)
         
-        #print calculator.preflopOdd(cards, [1,1,1,1,1,3,3,3,2,1]), calculator.preflopOdd(cards, [1,1,1,1,1,1,1,3,3,3]) 
+        print calculator.preflopOdd(cards, [1,1,1,1,1,3,3,3,3,3]), calculator.preflopOdd(cards, [1,1,2,2,2,2,3,3,2,1]) 
 
-        print preflopOdd(cards), calculator.preflopOdd(cards)
+        print calculator.preflopOdd(cards)
         print calculator.rangedPreflopOddTable[hash_cards(cards)]
 #        result = []
 #        for i in range(10):
