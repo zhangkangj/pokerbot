@@ -51,6 +51,7 @@ class Player(Bot):
         else:
             print self.oppLastAction
         
+    #TODO: add opp ranging after calling, randomize actions
     def flop(self):
         if "DISCARD" in self.actions:
             for card in self.holeCards:
@@ -66,11 +67,12 @@ class Player(Bot):
                         self.equity = result[2]
                         self.opCards = result[3]
                         if self.equity < 0.5:
-                            self.bet(self.minBet)
-                        elif self.equity > 0.75:
-                            self.bet(max(min(self.potSize / 2, self.maxBet), self.minBet))
+                            betAmount = self.minBet
+                        if self.equity > 0.75:
+                            betAmount = max(min(self.potSize / 2, self.maxBet), self.minBet)
                         else:
-                            self.bet(max(min(self.potSize, self.maxBet), self.minBet))
+                            betAmount = max(min(self.potSize, self.maxBet), self.minBet)
+                        self.bet(betAmount)                      
                     else:
                         if  self.oppLastAction[1] * 2 - self.potSize > 100:
                             self.flopWeights = [1,2,2,2,2,3,3,3,2,1]
@@ -85,7 +87,8 @@ class Player(Bot):
                             if self.minBet == None or self.maxBet == None:
                                 self.call()
                             else:
-                                self.rais(min(self.maxBet, self.oppLastAction[1]))
+                                raiseAmount = max(self.minBet, min(self.maxBet, self.oppLastAction[1]))
+                                self.rais(raiseAmount)
                         elif self.equity > 1.0 * minBet / (self.potSize + minBet):
                             self.call()
                         else:
@@ -96,12 +99,13 @@ class Player(Bot):
                     self.equity = result[2] 
                     self.opCards = result[3]
                     if self.equity < 0.5:
-                        self.bet(self.minBet)
-                    elif self.equity > 0.75:
-                        self.bet(max(min(self.potSize / 2, self.maxBet), self.minBet))
+                        betAmount = self.minBet
+                    if self.equity > 0.75:
+                        betAmount = max(min(self.potSize / 2, self.maxBet), self.minBet)
                     else:
-                        self.bet(max(min(self.potSize, self.maxBet), self.minBet))
-            else: # after 1st round
+                        betAmount = max(min(self.potSize, self.maxBet), self.minBet)
+                    self.bet(betAmount)
+            elif self.oppLastAction[0] == "RAISE": # after 1st round
                 if  self.oppLastAction[1] * 2 - self.potSize > 100:
                     self.flopWeights = [a+b for a,b in zip([1,2,2,2,2,3,3,3,2,1],self.flopWeights)]
                 else:
@@ -120,12 +124,36 @@ class Player(Bot):
                     self.call()
                 else:
                     self.fold()
+            else:
+                print "error in flop"
     
     def turn(self):
-        self.call()
-
+        self.equity = self.cal.turnRiverOdd(c2n(self.holeCards), c2n(self.boardCards), self.opCards)
+        if "CALL" in self.actions:
+            minBet = self.oppLastAction[1] * 2 - self.potSize
+            if self.equity > 0.5:
+                if self.minBet == None or self.maxBet == None:
+                    self.call()
+                else:
+                    self.rais(min(self.maxBet, self.oppLastAction[1]))
+            elif self.equity > 1.0 * minBet / (self.potSize + minBet):
+                self.call()
+            else:
+                self.fold()
+        elif "BET" in self.actions:
+            if self.equity < 0.5:
+                self.check()
+            else:
+                if self.equity > 0.75:
+                    betAmount = max(min(self.potSize, self.maxBet), self.minBet)
+                else:
+                    betAmount = max(min(self.potSize / 2, self.maxBet), self.minBet)
+                self.bet(betAmount)
+        else:
+            print "error in turn"
+            
     def river(self):
-        self.call()
+        self.turn()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A Pokerbot.', add_help=False, prog='pokerbot')
