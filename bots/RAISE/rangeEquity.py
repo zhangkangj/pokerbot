@@ -21,14 +21,9 @@ class rangeEquity(Bot):
         
         #requested by Mark for post flop
         self.isPreflopAggressor = None
-        
-        #requested by Qinxuan for statistical tools
-        self.oppRange = [None, None]
-        self.oppBBRaiseMatrix = None
-        self.oppSBRaiseMatrix = None
                   
     def prepareNewHand(self):
-        self.equity = self.calculator.preflopOdd(
+        self.equity = self.cal.preflopOdd(
             [util.card_to_number(card) for card in self.holeCards])
         self.numPreflopRaises = 0
         self.isPreflopAggressor = None
@@ -44,6 +39,12 @@ class rangeEquity(Bot):
             elif self.oppLastAction[0] == "BET":
                 oppRaiseAmount = self.oppLastAction[1]
                 potOdd = self.calPotOdd(secRaiseRatio, oppRaiseAmount)
+                
+                self.stat.processOppRaiseStats(self.button, self.raiseRound, self.oppLastAction)                
+                print "bet:" + str(self.stat.oppRange)
+#                self.equity = self.cal.preflopOdd(
+#                    [util.card_to_number(card) for card in self.holeCards],
+#                    weights = self.stat.getOppRange())
                 if potOdd >= self.equity:
                     self.fold()
                 else:
@@ -51,14 +52,20 @@ class rangeEquity(Bot):
             else: #opp 3-raised
                 oppRaiseAmount = self.oppLastAction[1]
                 potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+                
+                self.stat.processOppRaiseStats(self.button, self.raiseRound, self.oppLastAction)      
+                print "raise:" + str(self.stat.oppRange)                       
+#                self.equity = self.cal.preflopOdd(
+#                    [util.card_to_number(card) for card in self.holeCards],
+#                    weights = self.stat.getOppRange())                
                 if potOdd >= self.equity:
                     self.fold()
                 else:
                     self.preflopCall()
-                
+                                    
     def flop(self):
         if "DISCARD" in self.actions:
-            keep = self.calculator.flopOdd(util.c2n(self.holeCards), util.c2n(self.boardCards))[0:2]
+            keep = self.cal.flopOdd(util.c2n(self.holeCards), util.c2n(self.boardCards))[0:2]
             for card in self.holeCards:
                 if util.card_to_number(card) not in keep:
                     self.discard(card)
@@ -67,7 +74,7 @@ class rangeEquity(Bot):
             # out of position
             if not self.button:
                 # opponent has not acted yet
-                if not self.oppLastAction:
+                if self.raiseRound == 0:
                     if self.isPreflopAggressor:
                         #we have equity against their range
                         self.rais(0.75 * self.potSize)
@@ -128,9 +135,7 @@ class rangeEquity(Bot):
         self.flop()
 
     #pre-flop sub-methods
-     
-    #currently just assume that opp would fold; need to include the cases where
-    #he calls or reraises.
+
     #myRaiseRatio >= 1.0
     def calPotOdd(self, myRaiseRatio, oppRaiseAmount):
         myPot = self.potSize - oppRaiseAmount
@@ -156,6 +161,12 @@ class rangeEquity(Bot):
         elif self.numPreflopRaises == 1: #opp has reraised
             oppRaiseAmount = self.oppLastAction[1]
             potOdd = self.calPotOdd(secRaiseRatio, oppRaiseAmount)
+            
+            self.stat.processOppRaiseStats(self.button, self.raiseRound, self.oppLastAction)   
+            print self.stat.oppRange                         
+#            self.equity = self.cal.preflopOdd(
+#                [util.card_to_number(card) for card in self.holeCards],
+#                weights = self.stat.getOppRange())            
             if potOdd >= self.equity:
                 self.fold()
             else:
@@ -163,6 +174,12 @@ class rangeEquity(Bot):
         else: #call or fold if opp has raised twice
             oppRaiseAmount = self.oppLastAction[1]
             potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+            
+            self.stat.processOppRaiseStats(self.button, self.raiseRound, self.oppLastAction)    
+            print self.stat.oppRange                        
+#            self.equity = self.cal.preflopOdd(
+#                [util.card_to_number(card) for card in self.holeCards],
+#                weights = self.stat.getOppRange())            
             if potOdd >= self.equity:
                 self.fold()
             else:
