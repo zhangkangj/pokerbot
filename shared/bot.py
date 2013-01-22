@@ -55,12 +55,6 @@ class Bot(object):
                 print "Gameover, engine disconnected."
                 break
             self.handleMessage(message)
-<<<<<<< HEAD
-            
-=======
-            responded = str(time() - 1300000000)
-            print message + "\t|rec:" + received + "|res:" + responded
->>>>>>> branch 'master' of https://github.com/zhangkangj/pokerbot.git
         # Clean up the socket.
         self.socket.close()
     
