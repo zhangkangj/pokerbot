@@ -65,6 +65,7 @@ class Bot(object):
             self.stackSize = int(parts[3])
             self.bb = int(parts[4])
         elif word == "NEWHAND":
+            print
             self.handID = int(parts[1])
             if parts[2] == "false":
                 self.button = False
