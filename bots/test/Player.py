@@ -44,9 +44,9 @@ class Player(Bot):
                 if 1.0 * minBet / (self.potSize + minBet):
                     self.call()
             else:
-                self.flod()
-            print self.oppLastAction, totalRaise, equity, 1.0 * (self.oppLastAction[1] * 2 - self.potSize) / (self.oppLastAction[1] * 2)
-            print self.minBet, min(self.maxBet, self.minBet * 3), self.potSize
+                self.fold()
+#            print self.oppLastAction, totalRaise, equity, 1.0 * (self.oppLastAction[1] * 2 - self.potSize) / (self.oppLastAction[1] * 2)
+#            print self.minBet, min(self.maxBet, self.minBet * 3), self.potSize
         else:
             print self.oppLastAction
         
