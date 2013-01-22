@@ -102,9 +102,22 @@ def mergeRanged():
 if __name__ == '__main__':
     calculator = Calculator()
     start = datetime.now()
-    cards = c2n(["2s", "7s", "4c"])
+    for i in range(1):
+        cards = draw_cards(3, True)
+        cards = c2n(["As", "Ad", "Ts"])
+        print n2c(cards)
+        
+        #print calculator.preflopOdd(cards, [1,1,1,1,1,3,3,3,2,1]), calculator.preflopOdd(cards, [1,1,1,1,1,1,1,3,3,3]) 
 
-    print calculator.preflopOdd(cards)
+        print preflopOdd(cards), calculator.preflopOdd(cards)
+        print calculator.rangedPreflopOddTable[hash_cards(cards)]
+#        result = []
+#        for i in range(10):
+#            weights = [0] * 10
+#            weights[i] = 1
+#            opCards = calculator.samplePreflop(weights, 300)
+#            result.append(preflopOdd(cards, opCards))
+#        print result 
 #    print preflopOdd(cards, None, sampleSize = 500)
 #    print preflopOdd(cards, None, sampleSize = 500)
 #    print preflopOdd(cards, None, sampleSize = 500)

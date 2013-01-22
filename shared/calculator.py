@@ -42,13 +42,13 @@ class Calculator:
                     self.holeCards.append((i,j,k))
 
     # preflop methods
-    # sum(weights) == 1
     def preflopOdd(self, cards, weights = None):
         cards.sort()
         hashCode = hash_cards(cards)
         if weights == None:
             return self.preflopOddTable[hashCode]
         else:
+            weights = [1.0 * x / sum(weights) for x in weights]
             odds = self.rangedPreflopOddTable[hashCode]
             return sum(p*q for p,q in zip(odds, weights))
 
@@ -63,8 +63,6 @@ class Calculator:
 
     #flop methods
     def twoFlopOdd(self, hand, board):
-#        hashCode = hash_cards(cards + board)
-#        return self.keys[hashCode%140608][hashCode/140608]
         return self.keys[hash_cards(board)][hash_cards(hand)]
 
     def flopOddNaive(self, cards, board):

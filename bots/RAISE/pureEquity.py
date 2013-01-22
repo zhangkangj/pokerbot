@@ -143,7 +143,7 @@ class preflopBot(Bot):
                 self.oppSBRaiseMatrix[raiseRound].pop(0)                
                   
     def prepareNewHand(self):
-        self.equity = self.calculator.preflopOdd(
+        self.equity = self.cal.preflopOdd(
             [util.card_to_number(card) for card in self.holeCards])
         self.numPreflopRaises = 0
         self.isPreflopAggressor = None

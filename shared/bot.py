@@ -6,6 +6,7 @@ Created on Jan 8, 2013
 
 from shared.calculator import Calculator
 from shared.statistician import Statistician
+from time import time
 
 class Bot(object):
 
@@ -48,13 +49,18 @@ class Bot(object):
         self.socket = input_socket
         f_in = input_socket.makefile()
         while True:
+            received = str(time() - 1300000000)
             message = f_in.readline().strip()
             if not message:
                 print "Gameover, engine disconnected."
                 break
-            print message
             self.handleMessage(message)
+<<<<<<< HEAD
             
+=======
+            responded = str(time() - 1300000000)
+            print message + "\t|rec:" + received + "|res:" + responded
+>>>>>>> branch 'master' of https://github.com/zhangkangj/pokerbot.git
         # Clean up the socket.
         self.socket.close()
     
@@ -67,6 +73,7 @@ class Bot(object):
             self.stackSize = int(parts[3])
             self.bb = int(parts[4])
         elif word == "NEWHAND":
+            print
             self.handID = int(parts[1])
             if parts[2] == "false":
                 self.button = False
