@@ -24,7 +24,7 @@ class Bot(object):
         self.holeCards = []
         self.handID = None
         
-        self.numBoardCards = None
+        self.numBoardCards = 0
         self.boardCards = []
         self.potSize = None
         
@@ -38,7 +38,7 @@ class Bot(object):
         self.actions = []
         self.minBet = None
         self.maxBet = None
-        self.raiseRound = None
+        self.raiseRound = 0
         
     def __init__(self):                
         self.initialize_match()    
@@ -54,6 +54,7 @@ class Bot(object):
                 break
             print message
             self.handleMessage(message)
+            
         # Clean up the socket.
         self.socket.close()
     
@@ -74,29 +75,30 @@ class Bot(object):
             self.position = self.button
             self.holeCards = [parts[3], parts[4], parts[5]]
             self.time = float(parts[8])
-            self.numBoardCards = 0
-            self.recentActions = []
-            self.oppLastAction = None
-            self.raiseRound = 0
             
             self.prepareNewHand()
         elif word == "HANDOVER":
             self.myBank.append(int(parts[1]))
             self.numBoardCards = int(parts[3])
-            self.boardCards = parts[3:3+self.numBoardCards]            
-#            numLastActions = int(parts[4+self.numBoardCards])
-#            lastActionsString = parts[5+self.numBoardCards:5 + self.numBoardCards + numLastActions] 
-#            self.lastActions = []
-#            for actionString in lastActionsString:
-#                temp = actionString.split(":")
-#                if len(temp) == 2:
-#                    self.lastActions.append((temp[0], temp[1]))
-#                    if temp[1] == self.oppName:
-#                        self.oppLastAction = (temp[0])
-#                else:
-#                    self.lastActions.append((temp[0], int(temp[1]), temp[2]))
-#                    if temp[2] == self.oppName:
-#                        self.oppLastAction = (temp[0], temp[1])                        
+            self.boardCards = parts[3:3+self.numBoardCards]          
+
+            #get last actions
+            numLastActions = int(parts[4+self.numBoardCards])
+            lastActionsString = parts[5+self.numBoardCards:5 + self.numBoardCards + numLastActions]
+            self.lastActions = []
+            self.oppLastAction = None            
+            for actionString in lastActionsString:
+                temp = actionString.split(":")
+                if len(temp) == 2:
+                    self.lastActions.append((temp[0], temp[1]))
+                elif len(temp) == 3:
+                    self.lastActions.append((temp[0], int(temp[1]), temp[2]))
+                else:
+                    self.lastActions.append((temp[0], temp[1], temp[2], temp[3]))
+                    
+            self.recentActions.extend(self.lastActions)
+            
+#            self.stat.processHandHist(self.oppName, self.button, self.recentActions)                     
             self.initialize_hand()
         elif word == "KEYVALUE": #can ignore unless we are storing opp's info between games
             pass
@@ -138,17 +140,16 @@ class Bot(object):
                     self.minBet = int(temp[1])
                     self.maxBet = int(temp[2])
             self.time = float(parts[1+offset+numLegalActions]) 
-            self.raiseRound += 1                
                 
             if self.numBoardCards == 0: #preflop
                 self.preflop()
             elif self.numBoardCards == 3: #flop
                 self.flop()
-            elif self.numBoardCards == 4: #turn                    
+            elif self.numBoardCards == 4: #turn    
                 self.turn()
-            else: #river                    
+            else: #river        
                 self.river()
-                
+            self.raiseRound += 1                
                       
     # public methods
     def prepareNewHand(self):
