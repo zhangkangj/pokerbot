@@ -56,7 +56,7 @@ class Bot(object):
                 break
             self.handleMessage(message)
             respond = str(time() - 1300000000)
-            print message + "|rec:" + received + "|res:" + respond
+            print message + "\t|rec:" + received + "|res:" + respond
         # Clean up the socket.
         self.socket.close()
     
