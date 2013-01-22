@@ -89,7 +89,6 @@ class Bot(object):
             numLastActions = int(parts[4+self.numBoardCards])
             lastActionsString = parts[5+self.numBoardCards:5 + self.numBoardCards + numLastActions]
             self.lastActions = []
-            self.oppLastAction = None            
             for actionString in lastActionsString:
                 temp = actionString.split(":")
                 if len(temp) == 2:
@@ -116,7 +115,6 @@ class Bot(object):
             numLastActions = int(parts[3+self.numBoardCards])
             lastActionsString = parts[4+self.numBoardCards:(4+self.numBoardCards)+numLastActions] 
             self.lastActions = []
-            self.oppLastAction = None
             for actionString in lastActionsString:
                 temp = actionString.split(":")
                 if len(temp) == 2:
