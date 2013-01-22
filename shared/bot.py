@@ -49,7 +49,6 @@ class Bot(object):
         self.socket = input_socket
         f_in = input_socket.makefile()
         while True:
-            received = str(time() - 1300000000)
             message = f_in.readline().strip()
             if not message:
                 print "Gameover, engine disconnected."
