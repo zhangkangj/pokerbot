@@ -1,17 +1,9 @@
 import argparse
 import socket
 
-from random import randrange
 from shared.bot import Bot
 from shared.util import c2n, n2c
 
-"""
-Simple example pokerbot, written in python.
-
-This is an example of a bare bones pokerbot. It only sets up the socket
-necessary to connect with the engine and then always returns the same action.
-It is meant as an example of how a pokerbot should communicate with the engine.
-"""
 class Player(Bot):
     def __init__(self):
         Bot.__init__(self)
