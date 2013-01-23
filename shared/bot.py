@@ -101,6 +101,7 @@ class Bot(object):
             self.recentActions.extend(self.lastActions)
             self.stat.processHandHist(self.oppName, self.button, self.recentActions)                     
             self.initialize_hand()
+            
         elif word == "KEYVALUE": #can ignore unless we are storing opp's info between games
             pass
         elif word == "REQUESTKEYVALUES":
