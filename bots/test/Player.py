@@ -134,7 +134,7 @@ class Player(Bot):
             else:
                 self.fold()
         elif "BET" in self.actions:
-            if self.equity < 0.5:
+            if self.equity < 0.6:
                 self.check()
             else:
                 if self.equity > 0.85:
