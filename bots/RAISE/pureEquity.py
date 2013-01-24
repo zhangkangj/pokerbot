@@ -9,7 +9,7 @@ from datetime import datetime
 
 #fixed parameters; will be dynamic later
 firstRaiseRatio = 3.5
-firstEqThresh = .25
+firstEqThresh = .60
 secRaiseRatio = 3
 secEqThresh = .65
 
@@ -175,63 +175,64 @@ class preflopBot(Bot):
         if "DISCARD" in self.actions:
             disCard = simpleDiscardWrapper(self.holeCards, self.boardCards)
             self.discard(disCard)
-        else:        
-            # out of position
-            if not self.button:
-                # opponent has not acted yet
-                if not self.oppLastAction:
-                    if self.isPreflopAggressor:
-                        #we have equity against their range
-                        self.rais(0.75 * self.potSize)
-                    else:
-                        self.check()
-    
-                # our opponent responded by raising
-                else:
-                    if self.boardIsSafe():
-                        # TODO: add in bluff raising logic and take into account opponent history
-                        if self.havePairs() < 3 or self.haveTrips() or self.haveQuads() or self.haveStraight() or self.haveFlush():
-                            self.rais(self.potSize)
-                        elif self.havePairs() < 6 or self.haveOpenEndedStraightDraw() or self.haveFlushDraw():
-                            self.call()
-                        else:
-                            self.fold()
-                    else:
-                        if self.havePairs() < 2 or self.haveTrips() or self.haveFlush() or self.haveQuads():
-                            self.rais(self.potSize)
-                        elif self.havePairs() < 4:
-                            self.call()
-                        else:
-                            self.fold()
-            # in position
-            else:            
-                oppAct = self.oppLastAction[0]
-                # opponent raised
-                if oppAct == "RAISE":
-                    oppRaiseAmount = self.oppLastAction[1]
-                    if self.boardIsSafe():
-                        # TODO: add in bluff raising logic and take into account opponent history
-                        if self.havePairs() < 3 or self.haveTrips() or self.haveQuads() or self.haveStraight() or self.haveFlush():
-                            self.rais(self.potSize)
-                        elif self.havePairs() < 6 or self.haveOpenEndedStraightDraw() or self.haveFlushDraw():
-                            self.call()
-                        else:
-                            self.fold()
-                    else:
-                        if self.havePairs() < 2 or self.haveTrips() or self.haveFlush() or self.haveQuads():
-                            self.rais(self.potSize)
-                        elif self.havePairs() < 4:
-                            self.call()
-                        else:
-                            self.fold()
-                # opponent checked
-                elif oppAct == "CHECK":
-                    if self.boardIsSafe():
-                        self.rais(self.potSize)
-                    else:
-                        self.check()
-                else:
-                    self.fold()
+        else:
+            self.check()    
+#            # out of position
+#            if not self.button:
+#                # opponent has not acted yet
+#                if not self.oppLastAction:
+#                    if self.isPreflopAggressor:
+#                        #we have equity against their range
+#                        self.rais(0.75 * self.potSize)
+#                    else:
+#                        self.check()
+#    
+#                # our opponent responded by raising
+#                else:
+#                    if self.boardIsSafe():
+#                        # TODO: add in bluff raising logic and take into account opponent history
+#                        if self.havePairs() < 3 or self.haveTrips() or self.haveQuads() or self.haveStraight() or self.haveFlush():
+#                            self.rais(self.potSize)
+#                        elif self.havePairs() < 6 or self.haveOpenEndedStraightDraw() or self.haveFlushDraw():
+#                            self.call()
+#                        else:
+#                            self.fold()
+#                    else:
+#                        if self.havePairs() < 2 or self.haveTrips() or self.haveFlush() or self.haveQuads():
+#                            self.rais(self.potSize)
+#                        elif self.havePairs() < 4:
+#                            self.call()
+#                        else:
+#                            self.fold()
+#            # in position
+#            else:            
+#                oppAct = self.oppLastAction[0]
+#                # opponent raised
+#                if oppAct == "RAISE":
+#                    oppRaiseAmount = self.oppLastAction[1]
+#                    if self.boardIsSafe():
+#                        # TODO: add in bluff raising logic and take into account opponent history
+#                        if self.havePairs() < 3 or self.haveTrips() or self.haveQuads() or self.haveStraight() or self.haveFlush():
+#                            self.rais(self.potSize)
+#                        elif self.havePairs() < 6 or self.haveOpenEndedStraightDraw() or self.haveFlushDraw():
+#                            self.call()
+#                        else:
+#                            self.fold()
+#                    else:
+#                        if self.havePairs() < 2 or self.haveTrips() or self.haveFlush() or self.haveQuads():
+#                            self.rais(self.potSize)
+#                        elif self.havePairs() < 4:
+#                            self.call()
+#                        else:
+#                            self.fold()
+#                # opponent checked
+#                elif oppAct == "CHECK":
+#                    if self.boardIsSafe():
+#                        self.rais(self.potSize)
+#                    else:
+#                        self.check()
+#                else:
+#                    self.fold()
 
     def turn(self):
         self.flop()
