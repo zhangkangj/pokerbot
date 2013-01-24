@@ -50,6 +50,7 @@ class Player(Bot):
                 if card not in self.keptCards:
                     self.discard(card)
         else:
+            print self.raiseRound, self.button
             if self.raiseRound == 0:
                 if self.button:#opp move first
                     if self.oppLastAction[0] == "CHECK":
@@ -123,12 +124,12 @@ class Player(Bot):
         self.equity = self.cal.turnRiverOdd(c2n(self.holeCards), c2n(self.boardCards), self.opCards)
         if "CALL" in self.actions:
             minBet = self.oppLastAction[1] * 2 - self.potSize
-            if self.equity > 0.75:
+            if self.equity > 0.85:
                 if self.minBet == None or self.maxBet == None:
                     self.call()
                 else:
                     self.rais(min(self.maxBet, self.oppLastAction[1]))
-            elif self.equity > 1.0 * minBet / (self.potSize + minBet):
+            elif self.equity > 1.0 * minBet / (self.potSize + minBet) and minBet < 150:
                 self.call()
             else:
                 self.fold()
@@ -136,7 +137,7 @@ class Player(Bot):
             if self.equity < 0.5:
                 self.check()
             else:
-                if self.equity > 0.75:
+                if self.equity > 0.85:
                     betAmount = max(min(self.potSize, self.maxBet), self.minBet)
                 else:
                     betAmount = max(min(self.potSize / 2, self.maxBet), self.minBet)
