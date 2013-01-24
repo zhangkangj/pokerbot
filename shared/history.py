@@ -18,7 +18,7 @@ class MatchPaser:
         
     def parse(self, opp, directory = "day9", me = "RAISE"):
         self.opp = opp
-        self.me = "RAISE"
+        self.me = me
         #small blind bet, react to check, react to raise < 2 * pot, react to raise > 2 * pot, big blind bet,  react to raise < 2 * pot, react to raise > 2 * pot 
         #preflop
         self.stats[0] = [[None] * self.handNumber, [None] * self.handNumber, [None] * self.handNumber, [None] * self.handNumber] 
@@ -28,8 +28,10 @@ class MatchPaser:
         self.stats[2] = [[None] * self.handNumber, [None] * self.handNumber, [None] * self.handNumber, [None] * self.handNumber]
         #river
         self.stats[3] = [[None] * self.handNumber, [None] * self.handNumber, [None] * self.handNumber, [None] * self.handNumber]
+        #0 tie, +/1 showdown, +/-2 fold
         self.showdown = [None] * self.handNumber
         self.myBank = []
+        #win/loss in a game
         self.delta = [None] * self.handNumber
         self.oppBB = []
         self.oppSB = []
@@ -211,7 +213,7 @@ class MatchPaser:
             filename = "match/" + self.opp + ".csv"
         f = open(filename, "w")
         f.write("small blind\n")
-        f.write("hand #, preflop:bet, check, raise_small, raise_big, flop:bet, call, raise_small, raise_big,turn:bet, check, raise_small, raise_big,river:bet, check, raise_small, raise_big, showdown, delta, bank, preflopOdd, flopOdd, turnOdd, riverOdd \n")
+        f.write("hand #, preflop:bet, check, raise_small, raise_big, flop:bet, check, raise_small, raise_big,turn:bet, check, raise_small, raise_big,river:bet, check, raise_small, raise_big, showdown, delta, bank, preflopOdd, flopOdd, turnOdd, riverOdd \n")
         for i in self.oppBB:
             result = [i+1]
             for j in range(4):
@@ -240,7 +242,7 @@ class MatchPaser:
             f.write(",".join(result) + "\n")
             f.flush()
         f.write("big blind\n")
-        f.write("hand #, preflop:bet, check, raise_small, raise_big, flop:bet, call, raise_small, raise_big,turn:bet, check, raise_small, raise_big,river:bet, check, raise_small, raise_big, showdown, delta, bank, preflopOdd, flopOdd, turnOdd, riverOdd \n")
+        f.write("hand #, preflop:bet, check, raise_small, raise_big, flop:bet, check, raise_small, raise_big,turn:bet, check, raise_small, raise_big,river:bet, check, raise_small, raise_big, showdown, delta, bank, preflopOdd, flopOdd, turnOdd, riverOdd \n")
         for i in self.oppSB:
             result = [i+1]
             for j in range(4):
@@ -288,6 +290,8 @@ if __name__ == '__main__':
     p = MatchPaser()
     p.parse("Poseidon")
     p.dump()
+    
+    
     plt.subplot(511)
     plt.plot(p.myBank)
     plt.subplot(512)
