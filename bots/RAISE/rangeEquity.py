@@ -40,11 +40,10 @@ class rangeEquity(Bot):
                 oppRaiseAmount = self.oppLastAction[1]
                 potOdd = self.calPotOdd(secRaiseRatio, oppRaiseAmount)
                 
-                self.stat.processOppRaiseStats(self.button, self.raiseRound, self.oppLastAction)                
-                print "bet:" + str(self.stat.oppRange)
-#                self.equity = self.cal.preflopOdd(
-#                    [util.card_to_number(card) for card in self.holeCards],
-#                    weights = self.stat.getOppRange())
+                oppDist = self.stat.getPreflopDist(self.button, self.raiseRound, self.oppLastAction)                
+                self.equity = self.cal.preflopOdd(
+                    [util.card_to_number(card) for card in self.holeCards],
+                    weights = oppDist)
                 if potOdd >= self.equity:
                     self.fold()
                 else:
@@ -53,11 +52,10 @@ class rangeEquity(Bot):
                 oppRaiseAmount = self.oppLastAction[1]
                 potOdd = self.calPotOdd(1.0, oppRaiseAmount)
                 
-                self.stat.processOppRaiseStats(self.button, self.raiseRound, self.oppLastAction)      
-                print "raise:" + str(self.stat.oppRange)                       
-#                self.equity = self.cal.preflopOdd(
-#                    [util.card_to_number(card) for card in self.holeCards],
-#                    weights = self.stat.getOppRange())                
+                oppDist = self.stat.getPreflopDist(self.button, self.raiseRound, self.oppLastAction)                
+                self.equity = self.cal.preflopOdd(
+                    [util.card_to_number(card) for card in self.holeCards],
+                    weights = oppDist)
                 if potOdd >= self.equity:
                     self.fold()
                 else:
@@ -162,24 +160,21 @@ class rangeEquity(Bot):
             oppRaiseAmount = self.oppLastAction[1]
             potOdd = self.calPotOdd(secRaiseRatio, oppRaiseAmount)
             
-            self.stat.processOppRaiseStats(self.button, self.raiseRound, self.oppLastAction)   
-            print self.stat.oppRange                         
-#            self.equity = self.cal.preflopOdd(
-#                [util.card_to_number(card) for card in self.holeCards],
-#                weights = self.stat.getOppRange())            
+            if self.button:
+                oppRange = self.stat.getPreflopRange(self.button, self.raiseRound, self.oppLastAction)
+                print oppRange
+            
+            oppDist = self.stat.getPreflopDist(self.button, self.raiseRound, self.oppLastAction)                
+            self.equity = self.cal.preflopOdd(
+                [util.card_to_number(card) for card in self.holeCards],
+                weights = oppDist)
             if potOdd >= self.equity:
                 self.fold()
             else:
                 self.preflopRaise(secRaiseRatio*oppRaiseAmount) #our 3-raise
         else: #call or fold if opp has raised twice
             oppRaiseAmount = self.oppLastAction[1]
-            potOdd = self.calPotOdd(1.0, oppRaiseAmount)
-            
-            self.stat.processOppRaiseStats(self.button, self.raiseRound, self.oppLastAction)    
-            print self.stat.oppRange                        
-#            self.equity = self.cal.preflopOdd(
-#                [util.card_to_number(card) for card in self.holeCards],
-#                weights = self.stat.getOppRange())            
+            potOdd = self.calPotOdd(1.0, oppRaiseAmount)            
             if potOdd >= self.equity:
                 self.fold()
             else:
