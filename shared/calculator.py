@@ -149,6 +149,8 @@ class Calculator:
                 weights[index] += 1
             flopOddTable = self.getFlopOddTable(board)
             counts = [a * b for a ,b in zip(weights, flopWeights)]
+            if (sum(counts) == 0):
+                return self.sampleFlop(board, preflopWeights, flopWeights, sampleSize)
             s = 1.0 * sampleSize / sum(counts)
             counts = [round(x * s) for x in counts]
             opCards = sample_distribution(flopOddTable, counts)
