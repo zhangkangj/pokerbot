@@ -25,17 +25,23 @@ class Statistician:
         street = 0
         raiseRound = 0
         
-        for action in recentActions:
+        for i in range(2,len(recentActions)): #skipping the first two POST actions
+            action = recentActions[i]
+            
+            if action[0] == "REFUND":
+                break
+            
             if action[-1] == oppName:
                 if street == 0 and raiseRound < 2:
                     self.processOppRaiseStats(button, raiseRound, action)
                 else: #stats for other streets and preflop raises after two rounds
                     pass
                 raiseRound += 1
-            elif action[0] == "DEAL":
+            
+            if action[0] == "DEAL":
                 street += 1
                 raiseRound = 0
-
+                
     def getPreflopDist(self, dealer, raiseRound, oppAction):
         oppRange = self.getPreflopRange(dealer, raiseRound, oppAction)
         oppLevels = self.fromRangeToLevels(oppRange)
@@ -141,7 +147,7 @@ class Statistician:
             return -1
         elif action[0] == "CALL":
             return 0
-        elif action[0] == "RAISE":
+        elif action[0] == "RAISE" or action[0] == "BET":
             return action[1]
     
     def refineOppRange(self, percentage, oppRange):
@@ -160,23 +166,41 @@ class Statistician:
         
         if numAppearances == 0:
             for i in range(len(arrayCopy)):
-                if arrayCopy[i] < num:
+                if num > arrayCopy[i]:
                     numBigger = i
                     break
+            numBigger = len(arrayCopy)-1
         else:
             numBigger = arrayCopy.index(num)
-                
+            
         return [float(numBigger)/len(array), float(numBigger+numAppearances)/len(array)]
     
+    # approximating the interval
     def fromRangeToLevels(self, oppRange, numLevels = 10):
-        [a, b] = oppRange
-        a = int(math.floor(numLevels*a))
-        b = int(math.ceil(numLevels*b))
+        [a, b] = [oppRange[0]*numLevels, oppRange[1]*numLevels] 
+        a1 = int(round(a))
+        b1 = int(round(b))
         
-        if a == b:
-            return [a, b+1]
+        if a1 == b1:
+            if a1 <= a and b1 <= b:
+                return [a1, b1+1]
+            elif a1 >= a and b1 >= b:
+                return [a1-1, b1]
+            else:
+                return [a1-1, b1+1]
         else:
-            return [a, b]
+            return [a1, b1]
+    
+# expanding the interval    
+#    def fromRangeToLevels(self, oppRange, numLevels = 10):
+#        [a, b] = oppRange
+#        a = int(math.floor(numLevels*a))
+#        b = int(math.ceil(numLevels*b))
+#        
+#        if a == b:
+#            return [a, b+1]
+#        else:
+#            return [a, b]
     
     def fromLevelsToDist(self, levels, numLevels = 10):
         lowerBound = numLevels - levels[1]
@@ -203,3 +227,8 @@ if __name__ == "__main__":
 #    for array in arrays:
 #        oppRange = stat.compareNumToArray(33, array)
 #        print stat.fromRangeToLevels(oppRange, numLevels = 5)
+
+#    ranges = [[0.02, 0.03],[0.56, 0.62],[0.96, 0.98]]
+#    for oppRange in ranges:
+#        level = stat.fromRangeToLevels(oppRange)
+#        print level
