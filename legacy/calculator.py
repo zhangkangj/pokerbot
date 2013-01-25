@@ -6,7 +6,7 @@ Created on Jan 10, 2013
 '''
 
 from shared.pbots_calc import calc
-from util import number_to_card, n2c, c2n, hash_cards, unhash_cards, sample_distribution
+from shared.util import number_to_card, n2c, c2n, hash_cards, unhash_cards, sample_distribution, draw_cards
 from random import sample
 import numpy as np
 
@@ -40,16 +40,7 @@ class Calculator:
             for j in range(i+1,52):
                 for k in range(j+1,52):
                     self.holeCards.append((i,j,k))
-        self.reset()
-    
-    def reset(self):
-        self.preflopWeights = [1] * self.buckets
-        self.flopWeights = [1] * self.buckets
-        self.preflopDist = None
-        self.flopDist = None
-        self.opCards = None
-        self.flopOdds = None
-        
+
     # preflop methods
     def preflopOdd(self, cards, weights = None):
         cards.sort()
@@ -57,10 +48,9 @@ class Calculator:
         if weights == None:
             return self.preflopOddTable[hashCode]
         else:
-            self.preflopWeights = [x * y for x, y in zip(self.preflopWeights, weights)]
-            self.preflopWeights = [1.0 * x / sum(self.preflopWeights) for x in self.preflopWeights]
+            weights = [1.0 * x / sum(weights) for x in weights]
             odds = self.rangedPreflopOddTable[hashCode]
-            return sum(p*q for p,q in zip(odds, self.preflopWeights))
+            return sum(p*q for p,q in zip(odds, weights))
 
     def preflopRank(self, cards):
         cards.sort()
@@ -86,117 +76,96 @@ class Calculator:
         else:
             return cards[1], cards[2], odd3
     
-    def computeOdd(self, myCards, board, opCards, boardString = None, distribution = None, cachedOdds = None, iterations = 10000):
+    def computeOdd(self, myCards, board, opCards, boardString = None, iterations = 10000):
         if boardString == None:
             boardString = "".join([number_to_card(x) for x in board])
-        if distribution == None:
-            distribution = [1] * len(opCards)
-        odds = [.5] * len(opCards)
         myCardsString = "".join([number_to_card(x) for x in myCards])
-        totalProb = i = totalWeight = 0
+        totalProb = n = 0
         if len(opCards[0]) == 3:
             tempTable = self.keys[hash_cards(board)].tolist()
         for opCard in opCards:
             if opCard[0] in myCards or opCard[0] in board or opCard[1] in myCards or opCard[1] in board:
                 continue
-            
-            if cachedOdds == None:
-                if len(opCards[0]) == 3:
-                    if opCard[2] in board or opCard[2] in myCards:
-                        continue     
-                    odd1 = tempTable[opCard[0]*52 + opCard[1]]
-                    odd2 = tempTable[opCard[0]*52 + opCard[2]]
-                    odd3 = tempTable[opCard[1]*52 + opCard[2]]
-                    if odd1 > odd2 and odd1 > odd3:
-                        opBestString = number_to_card(opCard[0]) + number_to_card(opCard[1])
-                    elif odd2 > odd1 and odd2 > odd3:
-                        opBestString = number_to_card(opCard[0]) + number_to_card(opCard[2])
-                    else:
-                        opBestString = number_to_card(opCard[1]) + number_to_card(opCard[2])
+            if len(opCards[0]) == 3:
+                if opCard[2] in board or opCard[2] in myCards:
+                    continue     
+                odd1 = tempTable[opCard[0]*52 + opCard[1]]
+                odd2 = tempTable[opCard[0]*52 + opCard[2]]
+                odd3 = tempTable[opCard[1]*52 + opCard[2]]
+                if odd1 > odd2 and odd1 > odd3:
+                    opBestString = number_to_card(opCard[0]) + number_to_card(opCard[1])
+                elif odd2 > odd1 and odd2 > odd3:
+                    opBestString = number_to_card(opCard[0]) + number_to_card(opCard[2])
                 else:
-                    opBestString = "".join(n2c(opCard))   
-            if distribution[i] != 0:
-                if cachedOdds == None:
-                    odds[i] = calc(myCardsString + ":" + opBestString, boardString, "", iterations).ev[0]
-                else:
-                    odds[i] = cachedOdds[i]
-                totalProb += odds[i] * distribution[i]
-                 
-            totalWeight += distribution[i]
-            i += 1
-        return totalProb / totalWeight, odds
+                    opBestString = number_to_card(opCard[1]) + number_to_card(opCard[2])
+            else:
+                opBestString = "".join(n2c(opCard))    
+            totalProb += calc(myCardsString + ":" + opBestString, boardString, "", iterations).ev[0]
+            n += 1
+        return totalProb / n
 
-    def flopOdd(self, myCards, board, flopWeights = None, sampleSize = 300):
+    def flopOdd(self, myCards, board, opCards = None, preflopWeights = None, flopWeights = None, sampleSize = 300):
         myCards.sort()
         board.sort()
         boardString = "".join([number_to_card(x) for x in board])
-        if flopWeights == None:
-            flopWeights = [1,1,1,1,1,1,1,1,1,1]
-        self.flopWeights = [a * b for a, b, in zip(self.flopWeights, flopWeights)]
-
-        if self.opCards == None:
-            (self.opCards, flopOdds, self.preflopDist) = self.sampleOppCards(board, sampleSize)
-        self.flopDist = [0] * sampleSize
-        for i in range(sampleSize):
-            self.flopDist[i] = flopWeights[min(int(flopOdds[i] * 10), 9)]
-        distribution = [a*b for a,b in zip(self.preflopDist,self.flopDist)]    
+        if opCards == None:
+            opCards = self.sampleFlop(board, preflopWeights, flopWeights, sampleSize)
         myCards0 = simpleDiscard(myCards, board)
         if len(myCards0) == 0:
-            (prob1, odds1) = self.computeOdd(myCards[0:2], board, self.opCards, boardString, distribution, self.flopOdds)
-            (prob2, odds2) = self.computeOdd([myCards[0],myCards[2]], board, self.opCards, boardString, distribution, self.flopOdds)
-            (prob3, odds3) = self.computeOdd(myCards[1:3], board, self.opCards, boardString, distribution, self.flopOdds)
+            prob1 = self.computeOdd(myCards[0:2], board, opCards, boardString)
+            prob2 = self.computeOdd([myCards[0],myCards[2]], board, opCards, boardString)
+            prob3 = self.computeOdd(myCards[1:3], board, opCards, boardString)
             if prob1 > prob2 and prob1 > prob3:
-                self.flopOdds = odds1
-                return myCards[0], myCards[1], prob1
+                return myCards[0], myCards[1], prob1, opCards
             if prob2 > prob1 and prob2 > prob3:
-                self.flopOdds = odds2
-                return myCards[0], myCards[2], prob2
+                return myCards[0], myCards[2], prob2, opCards
             else:
-                self.flopOdds = odds3
-                return myCards[1], myCards[2], prob3
+                return myCards[1], myCards[2], prob3, opCards
         else:
-            (prob0, self.flopOdds) = self.computeOdd(myCards0, board, self.opCards, boardString, distribution, self.flopOdds)
-            return myCards0[0], myCards0[1], prob0
+            prob0 = self.computeOdd(myCards0, board, opCards, boardString)
+            return myCards0[0], myCards0[1], prob0, opCards
     
-    def sampleOppCards(self, board, sampleSize = 1000):
+    def sampleFlop(self, board, preflopWeights, flopWeights, sampleSize):
         board.sort()
-        if self.preflopWeights == None:
-            preflopCards = self.holeCards #sample(self.holeCards, 22100)
+        if preflopWeights == None and flopWeights == None:
+            opCards = sample(self.holeCards, sampleSize)
+        elif flopWeights == None:
+            opCards = self.samplePreflop(preflopWeights, sampleSize)
         else:
-            preflopCards = self.samplePreflop(self.preflopWeights, 5000)
-        tempTable = self.keys[hash_cards(board)].tolist()
-        temp = {}
-        for cards in preflopCards:
-            if cards[0] in board or cards[1] in board or cards[2] in board:
-                continue
-            hashCode1 = cards[0]*52 + cards[1]
-            hashCode2 = cards[0]*52 + cards[2]
-            hashCode3 = cards[1]*52 + cards[2]
-            odd1 = tempTable[hashCode1]
-            odd2 = tempTable[hashCode2]
-            odd3 = tempTable[hashCode3]
-            if odd1 > odd2 and odd1 > odd3:
-                hashCode = hashCode1
-                odd = odd1
-            elif odd2 > odd1 and odd2 > odd3:
-                hashCode = hashCode2
-                odd = odd2
+            weights = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            if preflopWeights == None:
+                preflopCards = sample(self.holeCards, 10000)
             else:
-                hashCode = hashCode3
-                odd = odd3
-            if hashCode in temp:
-                temp[hashCode][1] += 1
-            else:
-                temp[hashCode] = [odd, 1]
-        items = temp.items()
-        if sampleSize < len(items):
-            items = sample(items, sampleSize)
-        result = ([],[],[])
-        for item in items:
-            result[0].append(unhash_cards(item[0], 2))
-            result[1].append(item[1][0])
-            result[2].append(item[1][1])
-        return result
+                preflopCards = self.samplePreflop(preflopWeights, 10000)
+            tempTable = self.keys[hash_cards(board)].tolist()
+            for cards in preflopCards:
+                if cards[0] in board or cards[1] in board or cards[2] in board:
+                    continue
+                odd1 = tempTable[cards[0]*52 + cards[1]]
+                odd2 = tempTable[cards[0]*52 + cards[2]]
+                odd3 = tempTable[cards[1]*52 + cards[2]]
+                odd = max(odd1, odd2, odd3)
+                index = min(int(odd * 10), 9)
+                weights[index] += 1
+            flopOddTable = self.getFlopOddTable(board)
+            counts = [a * b for a ,b in zip(weights, flopWeights)]
+            if (sum(counts) == 0):
+                return self.sampleFlop(board, preflopWeights, flopWeights, sampleSize)
+            s = 1.0 * sampleSize / sum(counts)
+            counts = [round(x * s) for x in counts]
+            opCards = sample_distribution(flopOddTable, counts)
+        return opCards
+
+    def getFlopOddTable(self, board, buckets = 10):
+        temp = [[] for i in range(buckets)]
+        for i in range(0,52):
+            for j in range(i+1,52):
+                if i in board or j in board:
+                    continue
+                odd = self.twoFlopOdd([i, j], board)
+                index = min(int(odd * 10), 9)
+                temp[index].append((i,j))
+        return temp
 
     #turn, river method
     def turnRiverOdd(self, myCards, board, opCards = None, iterations = 10000, cardString = None, boardString = None):
@@ -272,25 +241,19 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
             return (cards[0], cards[1]) 
 
 if __name__ == '__main__':    
-    from util import draw_cards, n2c
     from datetime import datetime
     
     cal = Calculator()
     start = datetime.now()
     cards = draw_cards(6, True)
-    cards = c2n(['3c', '3d', '7s', '9h', 'Td', '6c'])
+    cards = [40, 27, 5, 20, 34, 43]
     print cards, n2c(cards)
-    weights1 = [1,1,1,1,1,1,1,1,1,1]
-    weights2 = [1,1,1,1,1,1,1,1,1,1]
+    weights1 = [1,1,1,1,1,1,1,1,1,10]
+    weights2 = [1,1,1,1,1,1,1,1,1,10]
     
     for i in range(10):
-        cal.preflopWeights = None
-        result1 = cal.flopOdd(cards[0:3], cards[3:6], None, 2000)
-        cal.reset()
-        
-        cal.preflopWeights = weights1
-        result2 = cal.flopOdd(cards[0:3], cards[3:6], weights2, 2000)
-        print (n2c(result1[0:2]),result1[2]), (n2c(result2[0:2]),result2[2])
-        cal.reset()
+        result = cal.flopOdd(cards[0:3], cards[3:6], None, weights1, weights2, 1000)
+        print (n2c(result[0:2]),result[2])
+        #result = cal.sampleFlop(cards[0:3], weights1, weights2, 1000)
     
     print "time:" + str(datetime.now() - start)

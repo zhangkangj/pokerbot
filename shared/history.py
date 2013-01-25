@@ -288,7 +288,7 @@ class MatchPaser:
 
 if __name__ == '__main__':
     p = MatchPaser()
-    p.parse("Poseidon")
+    p.parse("HandBanana")
     p.dump()
     
     
