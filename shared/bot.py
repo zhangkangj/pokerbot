@@ -12,11 +12,12 @@ class Bot(object):
 
     def initialize_match(self):
         self.cal = Calculator()
-        self.stat = Statistician()
+        self.stat = None
         self.name = None
         self.oppName = None
         self.stackSize = None
         self.bb = None
+        self.numHands = None
         self.myBank = []
         self.initialize_hand()
         
@@ -68,6 +69,8 @@ class Bot(object):
             self.oppName = parts[2]
             self.stackSize = int(parts[3])
             self.bb = int(parts[4])
+            self.numHands = int(parts[5])
+            self.stat = Statistician(self.numHands)
         elif word == "NEWHAND":
             print
             self.handID = int(parts[1])
@@ -99,7 +102,7 @@ class Bot(object):
                     self.lastActions.append((temp[0], temp[1], temp[2], temp[3]))
                     
             self.recentActions.extend(self.lastActions)
-            self.stat.processHandHist(self.oppName, self.button, self.recentActions)                     
+            self.stat.processHand(self.oppName, self.button, self.recentActions)                     
             self.initialize_hand()
             
         elif word == "KEYVALUE": #can ignore unless we are storing opp's info between games
