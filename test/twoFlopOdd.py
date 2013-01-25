@@ -92,19 +92,30 @@ def process2():
     np.save("dat/flopOdd.npy", keys)
     
 if __name__ == '__main__':
-    cal = Calculator()
-    cards = draw_cards(5, True)
-    hand = cards[0:2]
-    board = cards[2:5] 
-    hand.sort()
-    board.sort()
-    hashCode = hash_cards(hand + board)
-    handstring = "".join([number_to_card(x) for x in hand])
-    boardstring = "".join([number_to_card(x) for x in board])
-    print cards, hashCode
-    print calc(handstring + ":xx", boardstring, "", 1000).ev[0]
-    print calc(handstring + ":xx", boardstring, "", 100000).ev[0]
-    print cal.twoFlopOdd(hand, board)
+    values = np.empty(25989600, dtype = np.float16)
+    n = 0
+    for line in open("dat/twoFlopOdd.csv"):
+        parts = line.strip().split(",")
+        odd = float(parts[1])
+        values[n] = odd
+        n +=1
+    print "sorting"
+    values = np.sort(values)
+    for i in range(0, 25989600, 2598960):
+        print values[i]
+#    cal = Calculator()
+#    cards = draw_cards(5, True)
+#    hand = cards[0:2]
+#    board = cards[2:5] 
+#    hand.sort()
+#    board.sort()
+#    hashCode = hash_cards(hand + board)
+#    handstring = "".join([number_to_card(x) for x in hand])
+#    boardstring = "".join([number_to_card(x) for x in board])
+#    print cards, hashCode
+#    print calc(handstring + ":xx", boardstring, "", 1000).ev[0]
+#    print calc(handstring + ":xx", boardstring, "", 100000).ev[0]
+#    print cal.twoFlopOdd(hand, board)
 #    
 #    from datetime import datetime
 #    start = datetime.now()

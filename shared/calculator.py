@@ -74,7 +74,16 @@ class Calculator:
     #flop methods
     def twoFlopOdd(self, hand, board):
         return self.keys[hash_cards(board)][hash_cards(hand)]
-
+    
+    def flopEquityToRank(self, odd):
+        n = 0
+        for i in [0.245, 0.30762, 0.36743, 0.42261, 0.47754, 0.54004, 0.60498, 0.69238, 0.79736]:
+            if odd < i:
+                return n
+            else:
+                n+=1
+        return 9
+        
     def flopOddNaive(self, cards, board):
         odd1 = self.twoFlopOdd([cards[0], cards[1]], board)
         odd2 = self.twoFlopOdd([cards[0], cards[2]], board)
@@ -99,7 +108,6 @@ class Calculator:
         for opCard in opCards:
             if opCard[0] in myCards or opCard[0] in board or opCard[1] in myCards or opCard[1] in board:
                 continue
-            
             if cachedOdds == None:
                 if len(opCards[0]) == 3:
                     if opCard[2] in board or opCard[2] in myCards:
@@ -133,11 +141,12 @@ class Calculator:
             flopWeights = [1,1,1,1,1,1,1,1,1,1]
         self.flopWeights = [a * b for a, b, in zip(self.flopWeights, flopWeights)]
         if self.opCards == None:
-            (self.opCards, flopOdds, self.preflopDist) = self.sampleOppCards(myCards, board, sampleSize)
+            (self.opCards, self.twoFlopOdds, self.preflopDist) = self.sampleOppCards(myCards, board, sampleSize)
         sampleSize = len(self.opCards)
         self.flopDist = [0] * sampleSize
         for i in range(sampleSize):
-            self.flopDist[i] = flopWeights[min(int(flopOdds[i] * 10), 9)]
+            #self.flopDist[i] = flopWeights[min(int(self.twoFlopOdds[i] * 10), 9)]
+            self.flopDist[i] = flopWeights[self.flopEquityToRank(self.twoFlopOdds[i])]
         distribution = [a*b for a,b in zip(self.preflopDist,self.flopDist)]    
         myCards0 = simpleDiscard(myCards, board)
         if len(myCards0) == 0:
@@ -271,16 +280,13 @@ def simpleDiscard(cards, board, cardString = None, boardString = None):
             return (cards[0], cards[1]) 
 
 if __name__ == '__main__':    
-    from util import draw_cards, n2c
+    from util import draw_cards
     from datetime import datetime
     
     cal = Calculator()
     cards = draw_cards(6, True)
-    cards = c2n(['3c', '3d', '7s', '9h', 'Td', '6c'])
+#    cards = c2n(['3c', '3d', '7s', '9h', 'Td', '6c'])
     print cards, n2c(cards)
-    weights1 = [1,1,1,1,1,1,1,1,1,10]
-    weights2 = [1,1,1,1,1,1,1,1,1,10]
-    
     
     myCards = cards[0:3]
     board = cards[3:6]
@@ -296,15 +302,14 @@ if __name__ == '__main__':
     print odd / n
     
     start = datetime.now()
+    
+    weights1 = [1,1,1,1,1,1,1,1,1,1]
+    weights2 = [1,1,1,1,1,1,1,1,1,2]
+    weights3 = [1,1,1,1,1,1,1,1,1,4]
     for i in range(10):
-        cal.preflopWeights = None
-        result1 = cal.flopOdd(cards[0:3], cards[3:6], None, 500)
-        cal.reset()
-        
         cal.preflopWeights = weights1
-        result2 = cal.flopOdd(cards[0:3], cards[3:6], weights2, 500)
+        result1 = cal.flopOdd(cards[0:3], cards[3:6], weights2, 500)
+        result2 = cal.flopOdd(cards[0:3], cards[3:6], weights3, 500)
         cal.reset()
         print (n2c(result1[0:2]),result1[2]), (n2c(result2[0:2]),result2[2])
-        
-    
     print "time:" + str(datetime.now() - start)
