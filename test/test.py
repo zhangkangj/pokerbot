@@ -9,11 +9,16 @@ from random import randrange
 import numpy as np
 from shared.util import draw_cards
 
-a = np.arange(1326, dtype = np.float16)
-
-a = [1] * 300
-b = [2] * 300
+a = {}
 start = datetime.now()
-for i in range(100):
-    [x*y for x, y in zip(a,b)]
+for m in range(1000):
+    for i in range(52):
+        for j in range(i+1, 52):
+            #a[(i,j)] = 1
+            a[i * 52 + j] = 1
+            
+    for i in range(52):
+        for j in range(i+1, 52):
+            #a[(i,j)] = 1
+            a[i * 52 + j] = 2
 print "time:" + str(datetime.now() - start)
