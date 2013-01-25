@@ -206,8 +206,11 @@ class Bot(object):
         self.sendMessage("BET:" + str(amount))
     
     def fold(self):
-        self.myLastAction = ["FOLD"]
-        self.sendMessage("FOLD")
+        if "CHECK" in self.actions:
+            self.check()
+        else:
+            self.myLastAction = ["FOLD"]
+            self.sendMessage("FOLD")
         
     def discard(self, card):
         #print "discarding"
