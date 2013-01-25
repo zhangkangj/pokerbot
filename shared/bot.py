@@ -12,11 +12,12 @@ class Bot(object):
 
     def initialize_match(self):
         self.cal = Calculator()
-        self.stat = Statistician()
+        self.stat = None
         self.name = None
         self.oppName = None
         self.stackSize = None
         self.bb = None
+        self.numHands = None
         self.myBank = []
         self.initialize_hand()
         
@@ -68,6 +69,8 @@ class Bot(object):
             self.oppName = parts[2]
             self.stackSize = int(parts[3])
             self.bb = int(parts[4])
+            self.numHands = int(parts[5])
+            self.stat = Statistician(self.numHands)
         elif word == "NEWHAND":
             print
             self.handID = int(parts[1])
