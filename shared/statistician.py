@@ -6,12 +6,15 @@ Created on Jan 21, 2013
 '''
 import math
 
+minWindowSize = 300
+maxWindowSize = 1000
+
 class Statistician:
-    def __init__(self):
+    def __init__(self, numHands):
         self.numLevels = 10
         self.initWindowSize = 30
-        self.windowSize = 1000 #must be a multiple of 10
-        self.oppRange = [0, 1]
+        # window size is always between 300 and 1000
+        self.windowSize = min(maxWindowSize, max(minWindowSize, numHands/10))
         
         #preflop
         self.SBNumFirstRounds = 0 #the total number of first rounds played so far from SB position 
@@ -21,46 +24,63 @@ class Statistician:
         self.BBNumFirstRaises = 0
         self.BBRaiseMatrix = [[], []]
     
-    def processHandHist(self, oppName, button, recentActions):
+    def processHand(self, oppName, button, hand):
         street = 0
         raiseRound = 0
         
-        for i in range(2,len(recentActions)): #skipping the first two POST actions
-            action = recentActions[i]
+        for i in range(2, len(hand)): #skipping the first two POST actions
+            action = hand[i]
             
-            if action[0] == "REFUND":
-                break
-            
-            if action[-1] == oppName:
-                if street == 0 and raiseRound < 2:
-                    self.processOppRaiseStats(button, raiseRound, action)
-                else: #stats for other streets and preflop raises after two rounds
-                    pass
-                raiseRound += 1
-            
-            if action[0] == "DEAL":
+            if action[0] == "DEAL": #start of next street
                 street += 1
                 raiseRound = 0
+            elif action[0] in ["SHOW", "REFUND", "WIN"]: #the end of the hand
+                self.processEnd(button)
+            elif action[-1] == oppName:
+                self.processStreet(street, raiseRound, button, action)            
+                raiseRound += 1
                 
-    def getPreflopDist(self, dealer, raiseRound, oppAction):
-        oppRange = self.getPreflopRange(dealer, raiseRound, oppAction)
+    def getPreflopDist(self, button, raiseRound, oppAction):
+        oppRange = self.getPreflopRange(button, raiseRound, oppAction)
         oppLevels = self.fromRangeToLevels(oppRange)
         return self.fromLevelsToDist(oppLevels, numLevels = self.numLevels)
 
-    def getPreflopRange(self, dealer, raiseRound, oppAction):
+    def getPreflopRange(self, button, raiseRound, oppAction):
         raiseAmount = self.getRaiseAmount(oppAction)
         
-        if dealer:
+        if button:
             return self.getSBPreflopRange(raiseRound, raiseAmount)
         else:
             return self.getBBPreflopRange(raiseRound, raiseAmount)
 
     # recording sub-methods
-    def processOppRaiseStats(self, dealer, raiseRound, oppAction):
-        if dealer:
+    def processStreet(self, street, raiseRound, button, oppAction):
+        if street == 0 and raiseRound < 2: #pre-flop
+            self.processPreflopStats(button, raiseRound, oppAction)
+        elif street == 1: #flop
+            self.processFlopStats(button, raiseRound, oppAction)
+        elif street == 2: #turn
+            self.processTurnStats(button, raiseRound, oppAction)
+        else: #river
+            self.processRiverStats(button, raiseRound, oppAction)
+    
+    def processEnd(self, button):
+        pass
+    
+    def processPreflopStats(self, button, raiseRound, oppAction):
+        if button:
             self.updateSBPreflopStats(raiseRound, oppAction)
         else:
             self.updateBBPreflopStats(raiseRound, oppAction)
+
+    def processFlopStats(self, button, raiseRound, oppAction):
+        pass
+    
+    def processTurnStats(self, button, raiseRound, oppAction):
+        pass
+    
+    def processRiverStats(self, button, raiseRound, oppAction):
+        pass
 
     def updateSBPreflopStats(self, raiseRound, oppAction):
         if raiseRound == 0:
@@ -215,8 +235,21 @@ class Statistician:
         return levelArray                          
                                  
 if __name__ == "__main__":
-    stat = Statistician()
+    pass
 
+#    #check self.windowSize
+#    stat1 = Statistician(1000)
+#    print str(stat1.windowSize) + "?=300"
+#    stat2 = Statistician(3000)
+#    print str(stat2.windowSize) + "?=300"    
+#    stat3 = Statistician(10000)
+#    print str(stat3.windowSize) + "?=1000"    
+#    stat4 = Statistician(25000)
+#    print str(stat4.windowSize) + "?=1000"        
+#    stat5 = Statistician(100000)
+#    print str(stat5.windowSize) + "?=1000"        
+
+#    stat = Statistician(1000)
 #    levels = [[0, 10], [0, 5], [5, 10], [2, 7]]
 #    for level in levels:
 #        print stat.fromLevelsToDist(level)
