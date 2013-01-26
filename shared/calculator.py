@@ -112,10 +112,11 @@ class Calculator:
         myCardsString = "".join([number_to_card(x) for x in myCards])
         totalProb = totalWeight = 0
         i = -1
-        for (c1,c2) in opCards:
-            i+=1
-            if distribution[i] != 0:
-                if cachedOdds == None:
+        
+        if cachedOdds == None:
+            for (c1,c2) in opCards:
+                i+=1
+                if distribution[i] != 0:
                     if sampleCards and random() < 0.5:
                         continue 
                     opBestString = number_to_card(c1) + number_to_card(c2)    
@@ -124,11 +125,14 @@ class Calculator:
                         odds[i] = round(odds[i])
                     totalProb += odds[i] * distribution[i]
                     totalWeight += distribution[i]
-                else:
-                    if cachedOdds[i] != None:
-                        totalProb += cachedOdds[i] * distribution[i]
-                        totalWeight += distribution[i]
-        return totalProb / totalWeight, odds
+                    return totalProb / totalWeight, odds
+        else:
+            for (c1,c2) in opCards:
+                i+=1
+                if distribution[i] != 0 and cachedOdds[i] != None:
+                    totalProb += cachedOdds[i] * distribution[i]
+                    totalWeight += distribution[i]
+            return totalProb / totalWeight, cachedOdds
 
     def flopOdd(self, myCards, board, flopWeights = None):
         if myCards == None:
@@ -144,7 +148,6 @@ class Calculator:
         sampleSize = len(self.opCards)
         self.flopDist = [0] * sampleSize
         for i in range(sampleSize):
-            #self.flopDist[i] = flopWeights[min(int(self.twoFlopOdds[i] * 10), 9)]
             self.flopDist[i] = flopWeights[self.flopEquityToRank(self.twoFlopOdds[i])]
         distribution = [a*b for a,b in zip(self.preflopDist,self.flopDist)]
         myCards0 = simpleDiscard(myCards, board)
@@ -162,7 +165,8 @@ class Calculator:
                 self.flopOdds = odds3
                 return myCards[1], myCards[2], prob3
         else:
-            (prob0, self.flopOdds) = self.computeOdd(myCards0, board, self.opCards, boardString, distribution, self.flopOdds, False, True)
+            (prob0, flopOdds) = self.computeOdd(myCards0, board, self.opCards, boardString, distribution, self.flopOdds, False, True)
+            self.flopOdds = flopOdds
             return myCards0[0], myCards0[1], prob0
     
     def sampleOppCards(self, myCards, board, sampleSize = 5000):
@@ -216,7 +220,7 @@ class Calculator:
         return result1[0], result1[1], result2
 
     #turn method
-    def turnOdd(self, myCards, board, turnWeights = [1,1,1,1,1,1,1,1,1,1], iterations = 10000):
+    def turnOdd(self, myCards, board, turnWeights = [1,1,1,1,1,1,1,1,1,1]):
         boardString = "".join([number_to_card(x) for x in board])
         self.turnWeights = [a * b for a, b, in zip(self.turnWeights, turnWeights)]
         self.turnDist = [None] * len(self.opCards)
@@ -230,7 +234,7 @@ class Calculator:
         return prob
     
     #river method
-    def riverOdd(self, myCards, board, riverWeights = [1,1,1,1,1,1,1,1,1,1], iterations = 10000):
+    def riverOdd(self, myCards, board, riverWeights = [1,1,1,1,1,1,1,1,1,1]):
         boardString = "".join([number_to_card(x) for x in board])   
         self.turnWeights = [a * b for a, b, in zip(self.riverWeights, riverWeights)]
         self.riverDist = [1] * len(self.opCards)
