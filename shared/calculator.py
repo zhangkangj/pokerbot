@@ -43,6 +43,7 @@ class Calculator:
         self.reset()
     
     def reset(self):
+#        print "reset"
         self.preflopWeights = [1] * self.buckets
         self.flopWeights = [1] * self.buckets
         self.turnWeights = [1] * self.buckets
@@ -125,16 +126,20 @@ class Calculator:
                         odds[i] = round(odds[i])
                     totalProb += odds[i] * distribution[i]
                     totalWeight += distribution[i]
-                    return totalProb / totalWeight, odds
+            return totalProb / totalWeight, odds
         else:
             for (c1,c2) in opCards:
                 i+=1
                 if distribution[i] != 0 and cachedOdds[i] != None:
                     totalProb += cachedOdds[i] * distribution[i]
                     totalWeight += distribution[i]
+#            print "compute odd", totalWeight
+#            print cachedOdds
+#            print distribution
             return totalProb / totalWeight, cachedOdds
 
     def flopOdd(self, myCards, board, flopWeights = None, replace = True):
+#        print "flop", self.flopOdds
         if myCards == None:
             myCards = self.myCards
         else:
@@ -151,12 +156,12 @@ class Calculator:
             (self.opCards, self.twoFlopOdds, self.preflopDist) = self.sampleOppCards(myCards, board, 6000)
         sampleSize = len(self.opCards)
         self.flopDist = [0] * sampleSize
-        print self.flopWeights
+#        print self.flopWeights
         for i in range(sampleSize):
-            print i, self.twoFlopOdds[i], self.flopEquityToRank(self.twoFlopOdds[i]), flopWeights[self.flopEquityToRank(self.twoFlopOdds[i])], self.preflopDist[i]
+#            print i, self.twoFlopOdds[i], self.flopEquityToRank(self.twoFlopOdds[i]), flopWeights[self.flopEquityToRank(self.twoFlopOdds[i])], self.preflopDist[i]
             self.flopDist[i] = self.flopWeights[self.flopEquityToRank(self.twoFlopOdds[i])]
         distribution = [a*b for a,b in zip(self.preflopDist,self.flopDist)]
-        print distribution
+#        print distribution
         myCards0 = simpleDiscard(myCards, board)
         if len(myCards0) == 0:
             (prob1, odds1) = self.computeOdd(myCards[0:2], board, self.opCards, boardString, distribution, self.flopOdds, False, True)
@@ -228,6 +233,7 @@ class Calculator:
 
     #turn method
     def turnOdd(self, myCards, board, turnWeights = [1,1,1,1,1,1,1,1,1,1], replace = True):
+#        print "turn", self.turnOdds
         boardString = "".join([number_to_card(x) for x in board])
         if replace:
             self.turnWeights = turnWeights
@@ -370,8 +376,8 @@ if __name__ == '__main__':
     start = datetime.now()
     weights1 = [1,1,1,1,1,1,1,1,1,1]
     weights2 = [1,1,1,1,1,1,1,1,1,1]
-    weights3 = [10,1,1,1,1,1,1,1,1,1]
-    weights4 = [10,1,1,1,1,1,1,1,1,1]
+    weights3 = [1,1,1,1,1,1,1,1,1,1]
+    weights4 = [1,1,1,1,1,1,1,1,1,1]
 
     for i in range(10):
         preflop = cal.preflopOdd(cards[0:3], weights1)
