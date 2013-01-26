@@ -6,9 +6,6 @@ Created on Jan 21, 2013
 '''
 import math
 
-minWindowSize = 300
-maxWindowSize = 1000
-
 #fixed prior distributions
 SBPreflop = [
              [[0.5,1], [0.2,0.5], [0,0.2]]
@@ -22,13 +19,22 @@ SBFlop = [
           [[0.5,0.6], [0.1,0.5], [0,0.1]]
           ]
 BBFlop = [
-          [[0.9,1], [0.6,0.9], [0,0.6]],
-          [[0.5,0.6], [0.1,0.5], [0,0.1]]
+          [[0.5,1], [0.2,0.5], [0,0.2]]
           ]
-SBTurn = []
-BBTurn = []
-SBRiver = []
-BBRiver = []
+SBTurn = [
+          [[0.9,1], [0.6,0.9], [0,0.6]],
+          [[0.5,0.6], [0.1,0.5], [0,0.1]]          
+          ]
+BBTurn = [
+          [[0.5,1], [0.2,0.5], [0,0.2]]
+          ]
+SBRiver = [
+           [[0.9,1], [0.6,0.9], [0,0.6]],
+           [[0.5,0.6], [0.1,0.5], [0,0.1]]           
+           ]
+BBRiver = [
+           [[0.5,1], [0.2,0.5], [0,0.2]]
+           ]
 SBPriors = [SBPreflop, SBFlop, SBTurn, SBRiver]
 BBPriors = [BBPreflop, BBFlop, BBTurn, BBRiver]
 
@@ -38,7 +44,7 @@ class Statistician:
         self.numLevels = 10
         self.initWindowSize = 30
         # window size is always between 300 and 1000
-        self.windowSize = min(maxWindowSize, max(minWindowSize, numHands/10))
+        self.windowSize = 100
         
         self.SBStats = [
                         [[], []], #preflop (which has two raise rounds by default)
@@ -103,16 +109,17 @@ class Statistician:
         
         if button:
             raiseHist = self.SBStats[street][raiseRound]
-            raiseHistSorted = self.SBStatsSorted[street][raiseRound]
         else:
             raiseHist = self.BBStats[street][raiseRound]
-            raiseHistSorted = self.BBStatsSorted[street][raiseRound]
         
         raiseHist.append(raiseAmount)
         if len(raiseHist) > self.windowSize:
             raiseHist.pop(0)
-            
-        raiseHistSorted = self.reverseSortArray(raiseHist)
+        
+        if button:
+            self.SBStatsSorted[street][raiseRound] = self.reverseSortArray(raiseHist)
+        else:
+            self.BBStatsSorted[street][raiseRound] = self.reverseSortArray(raiseHist)
             
     def processEnd(self, button):
         pass
@@ -124,7 +131,7 @@ class Statistician:
     def getRaiseAmount(self, action):
         if action[0] == "FOLD":
             return -1
-        elif action[0] == "CALL":
+        elif action[0] == "CALL" or action[0] == "CHECK":
             return 0
         elif action[0] == "RAISE" or action[0] == "BET":
             return action[1]
