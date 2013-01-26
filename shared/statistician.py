@@ -45,6 +45,7 @@ class Statistician:
         self.initWindowSize = 30
         # window size is always between 300 and 1000
         self.windowSize = 100
+        self.oppRange = [0, 1]
         
         self.SBStats = [
                         [[], []], #preflop (which has two raise rounds by default)
@@ -82,14 +83,13 @@ class Statistician:
 
     def getStreetRange(self, button, oppAction, street, raiseRound):
         if button:
-            streetRaiseHistSorted = self.SBStatsSorted[street]
+            raiseHistSorted = self.SBStatsSorted[street][raiseRound]
             prior = SBPriors[street][raiseRound]
         else:
-            streetRaiseHistSorted = self.BBStatsSorted[street]            
+            raiseHistSorted = self.BBStatsSorted[street][raiseRound]            
             prior = BBPriors[street][raiseRound]
 
         raiseAmount = self.getRaiseAmount(oppAction)
-        raiseHistSorted = streetRaiseHistSorted[raiseRound]
         if len(raiseHistSorted) < self.initWindowSize:
             if raiseAmount == -1:
                 return prior[0]
@@ -98,14 +98,13 @@ class Statistician:
             else:
                 return prior[2]                
         else:           
-            oppRange = self.compareNumToArray(raiseAmount, raiseHistSorted)
-
-            if raiseRound != 0:
-                prevRaiseHistSorted = streetRaiseHistSorted[raiseRound-1]
-                raisePercentage = float(self.getNumPosElements(prevRaiseHistSorted)) / len(prevRaiseHistSorted)
-                self.refineOppRange(raisePercentage, oppRange)
+            if raiseRound == 0:
+                self.oppRange = self.compareNumToArray(raiseAmount, raiseHistSorted)
+            else:
+                raisePercentage = float(self.getNumPosElements(raiseHistSorted)) / len(raiseHistSorted)
+                self.oppRange = self.refineOppRange(raisePercentage, self.oppRange)
             
-            return oppRange                
+            return self.oppRange                
     
     def processStreetAction(self, button, oppAction, street, raiseRound):
         if raiseRound > 1:
