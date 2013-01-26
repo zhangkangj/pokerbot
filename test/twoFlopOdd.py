@@ -91,7 +91,7 @@ def process2():
             print keys[key]   
     np.save("dat/flopOdd.npy", keys)
     
-if __name__ == '__main__':
+def flopRank():
     values = np.empty(25989600, dtype = np.float16)
     n = 0
     for line in open("dat/twoFlopOdd.csv"):
@@ -103,6 +103,16 @@ if __name__ == '__main__':
     values = np.sort(values)
     for i in range(0, 25989600, 2598960):
         print values[i]
+
+def turnRank():
+    for i in range(1000000):
+        cards = draw_cards(6)
+        pass
+
+if __name__ == '__main__':
+    turnRank()
+    
+    
 #    cal = Calculator()
 #    cards = draw_cards(5, True)
 #    hand = cards[0:2]
