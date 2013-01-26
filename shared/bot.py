@@ -22,6 +22,7 @@ class Bot(object):
         self.initialize_hand()
         
     def initialize_hand(self):
+        self.cal.reset()
         self.button = None
         self.holeCards = []
         self.handID = None
