@@ -118,8 +118,6 @@ class Calculator:
                 if cachedOdds == None:
                     if sampleCards and random() < 0.5:
                         continue 
-                    if c1 in board or c2 in board:
-                        continue
                     opBestString = number_to_card(c1) + number_to_card(c2)    
                     odds[i] = calc(myCardsString + ":" + opBestString, boardString, "", iterations).ev[0]
                     if rounding:
@@ -137,7 +135,6 @@ class Calculator:
             myCards = self.myCards
         else:
             myCards.sort()
-        board.sort()
         boardString = "".join([number_to_card(x) for x in board])
         if flopWeights == None:
             flopWeights = [1,1,1,1,1,1,1,1,1,1]
@@ -149,7 +146,7 @@ class Calculator:
         for i in range(sampleSize):
             #self.flopDist[i] = flopWeights[min(int(self.twoFlopOdds[i] * 10), 9)]
             self.flopDist[i] = flopWeights[self.flopEquityToRank(self.twoFlopOdds[i])]
-        distribution = [a*b for a,b in zip(self.preflopDist,self.flopDist)]    
+        distribution = [a*b for a,b in zip(self.preflopDist,self.flopDist)]
         myCards0 = simpleDiscard(myCards, board)
         if len(myCards0) == 0:
             (prob1, odds1) = self.computeOdd(myCards[0:2], board, self.opCards, boardString, distribution, self.flopOdds, False, True)
@@ -219,36 +216,32 @@ class Calculator:
         return result1[0], result1[1], result2
 
     #turn method
-    def turnOdd(self, myCards, board, turnWeights, iterations = 10000):
+    def turnOdd(self, myCards, board, turnWeights = [1,1,1,1,1,1,1,1,1,1], iterations = 10000):
         boardString = "".join([number_to_card(x) for x in board])
-        if turnWeights == None:
-            turnWeights = [1,1,1,1,1,1,1,1,1,1]
         self.turnWeights = [a * b for a, b, in zip(self.turnWeights, turnWeights)]
-        self.turnDist = [0] * len(self.opCards)
+        self.turnDist = [None] * len(self.opCards)
         for i in range(len(self.opCards)):
-            self.turnDist[i] = turnWeights[self.turnEquityToRank(self.twoFlopOdds[i])]
-        distribution = [a*b*c for a,b,c in zip(self.preflopDist,self.flopDist, self.turnDist)]    
+            if board[-1] in self.opCards[i]:
+                self.turnDist[i] = 0
+            else:
+                self.turnDist[i] = 1
+        distribution = [a*b*c for a,b,c in zip(self.preflopDist,self.flopDist, self.turnDist)]
         (prob, self.turnOdds) = self.computeOdd(myCards, board, self.opCards, boardString, distribution, self.turnOdds)
         return prob
-        
-    def turnEquityToRank(self, odd):
-        return min(int(odd * 10), 9)
     
     #river method
-    def riverOdd(self, myCards, board, riverWeights, iterations = 10000):
+    def riverOdd(self, myCards, board, riverWeights = [1,1,1,1,1,1,1,1,1,1], iterations = 10000):
         boardString = "".join([number_to_card(x) for x in board])   
-        if riverWeights == None:
-            riverWeights = [1,1,1,1,1,1,1,1,1,1]
         self.turnWeights = [a * b for a, b, in zip(self.riverWeights, riverWeights)]
-        self.riverDist = [0] * len(self.opCards)
+        self.riverDist = [1] * len(self.opCards)
         for i in range(len(self.opCards)):
-            self.riverDist[i] = riverWeights[self.riverEquityToRank(self.twoFlopOdds[i])]
+            if board[-1] in self.opCards[i] or self.turnDist[i] == 0:
+                self.riverDist[i] = 0
+            else:
+                self.riverDist[i] = 1
         distribution = [a*b*c*d for a,b,c,d in zip(self.preflopDist,self.flopDist, self.turnDist, self.riverDist)]    
         (prob, self.riverOdds) = self.computeOdd(myCards, board, self.opCards, boardString, distribution, self.riverOdds, True)
         return prob
-
-    def riverEquityToRank(self, odd):
-        return min(int(odd * 10), 9)
     
 # basically wraps the simpleDiscard method in a simpler interface
 def simpleDiscardWrapper(cardStrings, boardStrings):
@@ -311,7 +304,7 @@ if __name__ == '__main__':
     
     cal = Calculator()
     cards = draw_cards(8, True)
-#    cards = [14, 21, 38, 41, 36, 44, 12, 49]
+    cards = [14, 21, 38, 41, 36, 44, 12, 49]
     print cards, n2c(cards[0:3])
     
     board = cards[3:6]
@@ -360,15 +353,15 @@ if __name__ == '__main__':
     start = datetime.now()
     weights1 = [1,1,1,1,1,1,1,1,1,1]
     weights2 = [1,1,1,1,1,1,1,1,1,1]
-    weights3 = [1,1,1,1,1,1,1,1,1,1]
-    weights4 = [1,1,1,1,1,1,1,1,1,1]
+    weights3 = [10,1,1,1,1,1,1,1,1,1]
+    weights4 = [10,1,1,1,1,1,1,1,1,1]
 
     for i in range(10):
         preflop = cal.preflopOdd(cards[0:3], weights1)
         flop = cal.flopOdd(cards[0:3], cards[3:6], weights2)
         myCards = flop[0:2]
-        turn = cal.turnOdd(myCards, cards[3:7], weights3)
-        river = cal.riverOdd(myCards, cards[3:8], weights4)
+        turn = cal.turnOdd(myCards, cards[3:7])
+        river = cal.riverOdd(myCards, cards[3:8])
         print preflop, flop[2], turn, river, n2c(myCards)
         cal.reset()
     print "time:" + str(datetime.now() - start)
