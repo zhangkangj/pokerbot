@@ -123,8 +123,9 @@ class Bot(object):
                 temp = actionString.split(":")
                 if len(temp) == 2:
                     self.lastActions.append((temp[0], temp[1]))
-                    if temp[0] == "DEAL": #the start of each new street resets raiseRound
+                    if temp[0] == "DEAL": #the start of each new street resets raiseRound and position
                         self.raiseRound = 0
+                        self.position = (not self.button)
                     if temp[1] == self.oppName:
                         self.oppLastAction = [temp[0]]
                 else:
