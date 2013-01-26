@@ -9,6 +9,30 @@ import math
 minWindowSize = 300
 maxWindowSize = 1000
 
+#fixed prior distributions
+SBPreflop = [
+             [[0.5,1], [0.2,0.5], [0,0.2]]
+             ]
+BBPreflop = [
+             [[0.9,1], [0.6,0.9], [0,0.6]],
+             [[0.5,0.6], [0.1,0.5], [0,0.1]]
+             ]
+SBFlop = [
+          [[0.9,1], [0.6,0.9], [0,0.6]],
+          [[0.5,0.6], [0.1,0.5], [0,0.1]]
+          ]
+BBFlop = [
+          [[0.9,1], [0.6,0.9], [0,0.6]],
+          [[0.5,0.6], [0.1,0.5], [0,0.1]]
+          ]
+SBTurn = []
+BBTurn = []
+SBRiver = []
+BBRiver = []
+SBPriors = [SBPreflop, SBFlop, SBTurn, SBRiver]
+BBPriors = [BBPreflop, BBFlop, BBTurn, BBRiver]
+
+
 class Statistician:
     def __init__(self, numHands):
         self.numLevels = 10
@@ -16,14 +40,16 @@ class Statistician:
         # window size is always between 300 and 1000
         self.windowSize = min(maxWindowSize, max(minWindowSize, numHands/10))
         
-        #preflop
-        self.SBNumFirstRounds = 0 #the total number of first rounds played so far from SB position 
-        self.SBNumFirstRaises = 0 #the total number of first raises by opp from SB position
-        self.SBRaiseMatrix = [[], []] #opp's raise amounts from the previous self.windowSize rounds (organized by round type)
-        self.BBNumFirstRounds = 0
-        self.BBNumFirstRaises = 0
-        self.BBRaiseMatrix = [[], []]
-    
+        self.SBStats = [
+                        [[], []], #preflop (which has two raise rounds by default)
+                        [[], []], #flop
+                        [[], []], #turn
+                        [[], []]  #river
+                        ]
+        self.SBStatsSorted = [[[], []], [[], []], [[], []], [[], []]]
+        self.BBStats = [[[], []], [[], []], [[], []], [[], []]]
+        self.BBStatsSorted = [[[], []], [[], []], [[], []], [[], []]]
+            
     def processHand(self, oppName, button, hand):
         street = 0
         raiseRound = 0
@@ -37,129 +63,62 @@ class Statistician:
             elif action[0] in ["SHOW", "REFUND", "WIN"]: #the end of the hand
                 self.processEnd(button)
             elif action[-1] == oppName:
-                self.processStreet(street, raiseRound, button, action)            
+                self.processStreetAction(button, action, street, raiseRound)            
                 raiseRound += 1
                 
-    def getPreflopDist(self, button, raiseRound, oppAction):
-        oppRange = self.getPreflopRange(button, raiseRound, oppAction)
+    def getOppDist(self, button, oppAction, street, raiseRound):   
+        oppRange = self.getStreetRange(button, oppAction, street, raiseRound)             
         oppLevels = self.fromRangeToLevels(oppRange)
         return self.fromLevelsToDist(oppLevels, numLevels = self.numLevels)
 
-    def getPreflopRange(self, button, raiseRound, oppAction):
+    def getStreetRange(self, button, oppAction, street, raiseRound):
+        if button:
+            streetRaiseHistSorted = self.SBStatsSorted[street]
+            prior = SBPriors[street][raiseRound]
+        else:
+            streetRaiseHistSorted = self.BBStatsSorted[street]            
+            prior = BBPriors[street][raiseRound]
+
+        raiseAmount = self.getRaiseAmount(oppAction)
+        raiseHistSorted = streetRaiseHistSorted[raiseRound]
+        if len(raiseHistSorted) < self.initWindowSize:
+            if raiseAmount == -1:
+                return prior[0]
+            elif raiseAmount == 0:
+                return prior[1]                
+            else:
+                return prior[2]                
+        else:           
+            oppRange = self.compareNumToArray(raiseAmount, raiseHistSorted)
+
+            if raiseRound != 0:
+                prevRaiseHistSorted = streetRaiseHistSorted[raiseRound-1]
+                raisePercentage = float(self.getNumPosElements(prevRaiseHistSorted)) / len(prevRaiseHistSorted)
+                self.refineOppRange(raisePercentage, oppRange)
+            
+            return oppRange                
+    
+    def processStreetAction(self, button, oppAction, street, raiseRound):
         raiseAmount = self.getRaiseAmount(oppAction)
         
         if button:
-            return self.getSBPreflopRange(raiseRound, raiseAmount)
+            raiseHist = self.SBStats[street][raiseRound]
+            raiseHistSorted = self.SBStatsSorted[street][raiseRound]
         else:
-            return self.getBBPreflopRange(raiseRound, raiseAmount)
-
-    # recording sub-methods
-    def processStreet(self, street, raiseRound, button, oppAction):
-        if street == 0 and raiseRound < 2: #pre-flop
-            self.processPreflopStats(button, raiseRound, oppAction)
-        elif street == 1: #flop
-            self.processFlopStats(button, raiseRound, oppAction)
-        elif street == 2: #turn
-            self.processTurnStats(button, raiseRound, oppAction)
-        else: #river
-            self.processRiverStats(button, raiseRound, oppAction)
-    
+            raiseHist = self.BBStats[street][raiseRound]
+            raiseHistSorted = self.BBStatsSorted[street][raiseRound]
+        
+        raiseHist.append(raiseAmount)
+        if len(raiseHist) > self.windowSize:
+            raiseHist.pop(0)
+            
+        raiseHistSorted = self.reverseSortArray(raiseHist)
+            
     def processEnd(self, button):
         pass
     
-    def processPreflopStats(self, button, raiseRound, oppAction):
-        if button:
-            self.updateSBPreflopStats(raiseRound, oppAction)
-        else:
-            self.updateBBPreflopStats(raiseRound, oppAction)
-
-    def processFlopStats(self, button, raiseRound, oppAction):
-        pass
-    
-    def processTurnStats(self, button, raiseRound, oppAction):
-        pass
-    
-    def processRiverStats(self, button, raiseRound, oppAction):
-        pass
-
-    def updateSBPreflopStats(self, raiseRound, oppAction):
-        if raiseRound == 0:
-            self.SBNumFirstRounds += 1
-            if oppAction[0] == "RAISE":
-                self.SBNumFirstRaises += 1
-                
-        raiseAmount = self.getRaiseAmount(oppAction)
-        self.SBRaiseMatrix[raiseRound].append(raiseAmount)
-        # if the size of the list is too big
-        if len(self.SBRaiseMatrix[raiseRound]) > self.windowSize:
-            self.SBRaiseMatrix[raiseRound].pop(0)
-                
-    def updateBBPreflopStats(self, raiseRound, oppAction):
-        if raiseRound == 0:
-            self.BBNumFirstRounds += 1
-            if oppAction[0] == "RAISE":
-                self.BBNumFirstRaises += 1
-                
-        raiseAmount = self.getRaiseAmount(oppAction)
-        self.BBRaiseMatrix[raiseRound].append(raiseAmount)
-        # if the size of the list is too big
-        if len(self.BBRaiseMatrix[raiseRound]) > self.windowSize:
-            self.BBRaiseMatrix[raiseRound].pop(0)    
-
     # ranging sub-methods    
-    def getSBPreflopRange(self, raiseRound, raiseAmount):
-        # if we don't have enough cases
-        if len(self.SBRaiseMatrix[raiseRound]) < self.initWindowSize:
-            if raiseRound == 0:
-                if raiseAmount == -1:
-                    return [0.5,1]
-                elif raiseAmount == 0:
-                    return [0.2,0.5]
-                else:
-                    return [0,0.2]
-                    
-            if raiseRound == 1:
-                if raiseAmount == -1:
-                    return [0.1,0.2]
-                elif raiseAmount == 0:
-                    return [0.05,0.1]
-                else:
-                    return [0,0.05]
-        else:
-            oppRange = self.compareNumToArray(raiseAmount, self.SBRaiseMatrix[raiseRound])
-                    
-            if raiseRound == 1:
-                raisePercentage = float(self.SBNumFirstRaises) / self.SBNumFirstRounds
-                self.refineOppRange(raisePercentage, oppRange)
-                
-            return oppRange
-                    
-    def getBBPreflopRange(self, raiseRound, raiseAmount):
-        if len(self.BBRaiseMatrix[raiseRound]) < self.initWindowSize:
-            if raiseRound == 0:
-                if raiseAmount == -1:
-                    return [0.9,1]
-                elif raiseAmount == 0:
-                    return [0.6,0.9]
-                else:
-                    return [0,0.6]
-                    
-            if raiseRound == 1:
-                if raiseAmount == -1:
-                    return [0.5,0.6]
-                elif raiseAmount == 0:
-                    return [0.1,0.5]
-                else:
-                    return [0,0.1]
-        else:
-            oppRange = self.compareNumToArray(raiseAmount, self.BBRaiseMatrix[raiseRound])
-                    
-            if raiseRound == 1:
-                raisePercentage = float(self.BBNumFirstRaises) / self.BBNumFirstRounds
-                self.refineOppRange(raisePercentage, oppRange)
-                
-            return oppRange    
-        
+                            
     # other helper sub-methods    
     # action is an array whose first element is its type, e.g. ['RAISE', 7, 'P1']
     def getRaiseAmount(self, action):
@@ -170,30 +129,48 @@ class Statistician:
         elif action[0] == "RAISE" or action[0] == "BET":
             return action[1]
     
+    # 1. array contains only positive numbers, 0 or -1
+    # 2. array is sorted from high to low
+    def getNumPosElements(self, array):
+        numZeros = array.count(0)
+        
+        if numZeros == 0:
+            numNeg = array.count(-1)
+            if numNeg == 0:
+                return len(array)
+            else:
+                return array.index(-1)
+        else:
+            return array.index(0)
+    
     def refineOppRange(self, percentage, oppRange):
         [a, b] = oppRange
         delta = (b - a) * percentage
         
         return [a, a + delta]
     
-    def compareNumToArray(self, num, array):
-        arrayCopy = list(array)
-        arrayCopy.sort()
-        arrayCopy.reverse()
+    def reverseSortArray(self, array):
+        arraySorted = list(array)
+        arraySorted.sort()
+        arraySorted.reverse()
         
+        return arraySorted
+    
+    #sortedArray is sorted from high to low
+    def compareNumToArray(self, num, sortedArray):
         numBigger = None
-        numAppearances = arrayCopy.count(num)
+        numAppearances = sortedArray.count(num)
         
         if numAppearances == 0:
-            for i in range(len(arrayCopy)):
-                if num > arrayCopy[i]:
+            for i in range(len(sortedArray)):
+                if num > sortedArray[i]:
                     numBigger = i
                     break
-            numBigger = len(arrayCopy)-1
+            numBigger = len(sortedArray)-1
         else:
-            numBigger = arrayCopy.index(num)
+            numBigger = sortedArray.index(num)
             
-        return [float(numBigger)/len(array), float(numBigger+numAppearances)/len(array)]
+        return [float(numBigger)/len(sortedArray), float(numBigger+numAppearances)/len(sortedArray)]
     
     # approximating the interval
     def fromRangeToLevels(self, oppRange, numLevels = 10):
