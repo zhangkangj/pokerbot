@@ -82,7 +82,6 @@ class Statistician:
             return None
    
         oppRange = self.getStreetRange(button, oppAction, street, raiseRound)      
-        print oppRange       
         oppLevels = self.fromRangeToLevels(oppRange)
         return self.fromLevelsToDist(oppLevels, numLevels = self.numLevels)
 
