@@ -88,7 +88,6 @@ class Statistician:
         raiseHistSorted = self.getSortedArray(button, street, raiseRound)
         if self.hasEnoughHistory(raiseHistSorted):
             oppDist = self.smoothDist(oppDist, raiseHistSorted)
-        print oppDist
         return oppDist
 
     def hasEnoughHistory(self, history):
