@@ -44,7 +44,7 @@ BBPriors = [BBPreflop, BBFlop, BBTurn, BBRiver]
 
 
 class Statistician:
-    def __init__(self, numHands):
+    def __init__(self):
         self.numLevels = 10
         self.initWindowSize = 30
         # window size is always between 300 and 1000
@@ -259,13 +259,22 @@ class Statistician:
         
         foldLevels = int(round(foldPercentage*self.numLevels))
         raiseLevels = int(round(raisePercentage*self.numLevels))
-                
-        avgWeight1 = totalWeight / (self.numLevels - foldLevels)
-        avgWeight2 = totalWeight / raiseLevels
-        dist1 = [0]*foldLevels
-        dist2 = [0]*(self.numLevels - raiseLevels)
-        dist1.extend([avgWeight1]*(self.numLevels - foldLevels))
-        dist2.extend([avgWeight2]*raiseLevels)
+        
+        if foldLevels == self.numLevels:
+            print sortedArray
+            dist1 = [0]*self.numLevels
+        else:   
+            avgWeight1 = totalWeight / (self.numLevels - foldLevels)
+            dist1 = [0]*foldLevels
+            dist1.extend([avgWeight1]*(self.numLevels - foldLevels))
+            
+        if raiseLevels == 0:
+            print sortedArray
+            dist2 = [0]*self.numLevels
+        else:
+            avgWeight2 = totalWeight / raiseLevels
+            dist2 = [0]*(self.numLevels - raiseLevels)
+            dist2.extend([avgWeight2]*raiseLevels)
         
         return [(x+y+z) for (x, y, z) in zip(dist, dist1, dist2)]
         
