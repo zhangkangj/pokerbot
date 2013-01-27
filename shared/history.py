@@ -11,7 +11,7 @@ from shared.util import c2n, n2c
 from shared.pbots_calc import calc
 
 class MatchPaser:
-    def __init__(self, handNumber = 000):
+    def __init__(self, handNumber = 1000):
         self.handNumber = handNumber
         self.stats = [None] * 4
         self.cal = Calculator()
@@ -86,7 +86,7 @@ class MatchPaser:
                 myBet = oppBet = 0
                 if "FLOP" in line:
                     board = c2n(line[len(line) - 9:len(line) -1].split(" "))
-                    self.flopOdd[handIndex] = self.cal.flopOdd(oppCards, board, None, True, 0.1)
+                    self.flopOdd[handIndex] = self.cal.flopOdd(oppCards, board, None, True, 0.8)
                 else:
                     board.append(c2n([line[len(line) - 3:len(line) -1]])[0])
                     odd = calc("".join(n2c(oppCards)) + ":xx", "".join(n2c(board)), "", 1000).ev[0]
@@ -163,7 +163,7 @@ class MatchPaser:
                             elif "bets" in line or "raises" in line:
                                 self.stats[street][0][handIndex] = oppBet
                             elif "folds" in line:
-                                self.stats[street][0][handIndex] = -1
+                                self.stats[street][0][handIndex] = -10
                             else:
                                 print "error in none action"
                                 print line
@@ -174,7 +174,7 @@ class MatchPaser:
                             elif "bets" in line or "raises" in line:
                                 self.stats[street][1][handIndex] = oppBet
                             elif "folds" in line:
-                                self.stats[street][1][handIndex] = -1
+                                self.stats[street][1][handIndex] = -10
                             else:
                                 print "error in check"
                                 print line
@@ -185,7 +185,7 @@ class MatchPaser:
                             elif "bets" in line or "raises" in line:
                                 self.stats[street][2][handIndex] = oppBet
                             elif "folds" in line:
-                                self.stats[street][2][handIndex] = -1
+                                self.stats[street][2][handIndex] = -10
                             else:
                                 print "error in small raise"
                                 print line
@@ -196,7 +196,7 @@ class MatchPaser:
                             elif "bets" in line or "raises" in line:
                                 self.stats[street][3][handIndex] = oppBet
                             elif "folds" in line:
-                                self.stats[street][3][handIndex] = -1
+                                self.stats[street][3][handIndex] = -10
                             else:
                                 print "error in big raise"
                                 print line
@@ -288,8 +288,8 @@ class MatchPaser:
     
 
 if __name__ == '__main__':
-    p = MatchPaser(2000)
-    p.parse("P2", "", "P1")
+    p = MatchPaser(1000)
+    p.parse("bAllin", "day11")
     p.dump()
     
     

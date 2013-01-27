@@ -76,7 +76,6 @@ class Calculator:
             return sum(p*q for p,q in zip(odds, self.preflopWeights))
 
     def preflopRank(self, cards):
-        cards.sort()
         hashCode = hash_cards(cards)
         return self.preflopRankTable[hashCode]
                     

@@ -22,7 +22,9 @@ class Player(Bot):
         
     def preflop(self):
         if self.raiseRound == 0 and self.button:
-            rank = self.cal.preflopRank(c2n(self.holeCards))
+            myCards = c2n(self.holeCards)
+            myCards.sort()
+            rank = self.cal.preflopRank(myCards)
             if rank < 0.02:
                 self.fold()
             else:
