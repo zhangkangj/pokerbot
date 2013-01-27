@@ -86,7 +86,7 @@ class Bot(object):
         elif word == "HANDOVER":
             self.myBank.append(int(parts[1]))
             self.numBoardCards = int(parts[3])
-            self.boardCards = parts[3:3+self.numBoardCards]          
+            self.boardCards = parts[4:4+self.numBoardCards]          
 
             #get last actions
             numLastActions = int(parts[4+self.numBoardCards])
@@ -102,6 +102,7 @@ class Bot(object):
                     self.lastActions.append((temp[0], temp[1], temp[2], temp[3]))
                     
             self.recentActions.extend(self.lastActions)
+            self.handOver()
             self.stat.processHand(self.oppName, self.button, self.recentActions)                     
             self.initialize_hand()
             
@@ -113,7 +114,6 @@ class Bot(object):
             self.potSize = int(parts[1])
             self.numBoardCards = int(parts[2])
             self.boardCards = parts[3:3+self.numBoardCards]
-            
             #get last actions
             numLastActions = int(parts[3+self.numBoardCards])
             lastActionsString = parts[4+self.numBoardCards:(4+self.numBoardCards)+numLastActions] 
