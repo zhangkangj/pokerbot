@@ -79,13 +79,14 @@ class MatchPaser:
                 if self.me not in parts[1]:
                     amount = -amount
                 self.myBank.append(amount)
+                self.cal.reset()
             elif "FLOP" in line or "TURN" in line or "RIVER" in line:
                 street += 1
                 myLastAction = None
                 myBet = oppBet = 0
                 if "FLOP" in line:
                     board = c2n(line[len(line) - 9:len(line) -1].split(" "))
-                    self.flopOdd[handIndex] = self.cal.flopOdd(oppCards, board, None, None, None, 300)[2]
+                    self.flopOdd[handIndex] = self.cal.flopOdd(oppCards, board, None, True, 0.1)
                 else:
                     board.append(c2n([line[len(line) - 3:len(line) -1]])[0])
                     odd = calc("".join(n2c(oppCards)) + ":xx", "".join(n2c(board)), "", 1000).ev[0]
@@ -288,7 +289,7 @@ class MatchPaser:
 
 if __name__ == '__main__':
     p = MatchPaser()
-    p.parse("HandBanana")
+    p.parse("P2", "", "P1")
     p.dump()
     
     

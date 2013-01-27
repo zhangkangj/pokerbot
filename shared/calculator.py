@@ -108,7 +108,7 @@ class Calculator:
         else:
             return cards[1], cards[2], odd3
     
-    def computeOdd(self, myCards, board, opCards, boardString = None, distribution = None, cachedOdds = None, rounding = False, sampleCards = False, iterations = 10000):
+    def computeOdd(self, myCards, board, opCards, boardString = None, distribution = None, cachedOdds = None, rounding = False, sampleCards = False, sampleRate = 0.6):
         if boardString == None:
             boardString = "".join([number_to_card(x) for x in board])
         if distribution == None:
@@ -121,10 +121,10 @@ class Calculator:
             for (c1,c2) in opCards:
                 i+=1
                 if distribution[i] != 0:
-                    if sampleCards and random() < 0.5:
+                    if sampleCards and random() < sampleRate:
                         continue 
                     opString = number_to_card(c1) + number_to_card(c2)
-                    odds[i] = calc(myCardsString + ":" + opString, boardString, "", iterations).ev[0]
+                    odds[i] = calc(myCardsString + ":" + opString, boardString, "", 10000).ev[0]
                     if rounding:
                         odds[i] = round(odds[i])
                     totalProb += odds[i] * distribution[i]
@@ -142,7 +142,7 @@ class Calculator:
                     totalWeight += distribution[i]
             return totalProb / totalWeight, cachedOdds
 
-    def flopOdd(self, myCards, board, flopWeights = None, replace = True):
+    def flopOdd(self, myCards, board, flopWeights = None, replace = True, sampleRate = 0.6):
 #        print "flop", flopWeights, self.flopOdds 
         if myCards == None:
             myCards = self.myCards
@@ -169,9 +169,9 @@ class Calculator:
 #        print distribution
         myCards0 = simpleDiscard(myCards, board)
         if len(myCards0) == 0:
-            (prob1, odds1) = self.computeOdd(myCards[0:2], board, self.opCards, boardString, distribution, self.flopOdds, False, True)
-            (prob2, odds2) = self.computeOdd([myCards[0],myCards[2]], board, self.opCards, boardString, distribution, self.flopOdds, False, True)
-            (prob3, odds3) = self.computeOdd(myCards[1:3], board, self.opCards, boardString, distribution, self.flopOdds, False, True)
+            (prob1, odds1) = self.computeOdd(myCards[0:2], board, self.opCards, boardString, distribution, self.flopOdds, False, True, sampleRate)
+            (prob2, odds2) = self.computeOdd([myCards[0],myCards[2]], board, self.opCards, boardString, distribution, self.flopOdds, False, True, sampleRate)
+            (prob3, odds3) = self.computeOdd(myCards[1:3], board, self.opCards, boardString, distribution, self.flopOdds, False, True, sampleRate)
             if prob1 > prob2 and prob1 > prob3:
                 self.flopOdds = odds1
                 self.keptCards = myCards[0:2]
