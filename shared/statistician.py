@@ -81,7 +81,8 @@ class Statistician:
         if raiseRound > 1:
             return None
    
-        oppRange = self.getStreetRange(button, oppAction, street, raiseRound)             
+        oppRange = self.getStreetRange(button, oppAction, street, raiseRound)      
+        print oppRange       
         oppLevels = self.fromRangeToLevels(oppRange)
         return self.fromLevelsToDist(oppLevels, numLevels = self.numLevels)
 
@@ -111,7 +112,8 @@ class Statistician:
                 raisePercentage = float(self.getNumPosElements(raiseHistSorted)) / len(raiseHistSorted)         
             
             self.oppRange = self.refineOppRange(raisePercentage, self.oppRange)
-            return self.oppRange                
+            
+        return self.oppRange                
     
     def processStreetAction(self, button, oppAction, street, raiseRound):
         if raiseRound > 1:
