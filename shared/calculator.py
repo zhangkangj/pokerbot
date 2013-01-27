@@ -187,7 +187,7 @@ class Calculator:
         else:
             (prob0, flopOdds) = self.computeOdd(myCards0, board, self.opCards, boardString, distribution, self.flopOdds, False, True)
             self.flopOdds = flopOdds
-            self.keptCards = myCards[0]
+            self.keptCards = myCards
             return prob0
     
     def sampleOppCards(self, myCards, board, sampleSize = 5000):
@@ -400,9 +400,9 @@ if __name__ == '__main__':
     for i in range(10):
         preflop = cal.preflopOdd(cards[0:3], weights1)
         flop = cal.flopOdd(cards[0:3], cards[3:6], weights2)
-        myCards = flop[0:2]
+        myCards = cal.keptCards
         turn = cal.turnOdd(myCards, cards[3:7])
         river = cal.riverOdd(myCards, cards[3:8])
-        print preflop, flop[2], turn, river, n2c(myCards)
+        print preflop, flop, turn, river, n2c(myCards)
         cal.reset()
     print "time:" + str(datetime.now() - start)
