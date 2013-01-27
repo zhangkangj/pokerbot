@@ -90,7 +90,6 @@ class rangeEquity(Bot):
                 self.getFlopRangedOdd(self.raiseRound-1)
                 
             for card in self.holeCards:
-                print self.cal.keptCards
                 if util.card_to_number(card) not in self.cal.keptCards:
                     self.discard(card)
                     break
@@ -187,7 +186,7 @@ class rangeEquity(Bot):
 #                    oppRange = self.stat.getPreflopRange(self.button, self.raiseRound, self.oppLastAction)
 #                        print oppRange
 
-                self.equity = self.getRiverRangedOdd(self.raiseRound)
+                self.equity = self.getTurnRangedOdd(self.raiseRound)
                 if potOdd >= self.equity:
                     self.fold()
                 else:
