@@ -57,16 +57,20 @@ class Calculator:
         self.turnOdds = None
         self.riverOdds = None
         self.myInitialCards = None
+        self.keptCards = None
         
     # preflop methods
-    def preflopOdd(self, cards, weights = None):
+    def preflopOdd(self, cards, weights = None, replace = True):
         cards.sort()
         self.myInitialCards = cards
         hashCode = hash_cards(cards)
         if weights == None:
             return self.preflopOddTable[hashCode]
         else:
-            self.preflopWeights = [x * y for x, y in zip(self.preflopWeights, weights)]
+            if replace :
+                self.preflopWeights = weights
+            else:
+                self.preflopWeights = [x * y for x, y in zip(self.preflopWeights, weights)]
             self.preflopWeights = [1.0 * x / sum(self.preflopWeights) for x in self.preflopWeights]
             odds = self.rangedPreflopOddTable[hashCode]
             return sum(p*q for p,q in zip(odds, self.preflopWeights))
@@ -133,20 +137,21 @@ class Calculator:
                 if distribution[i] != 0 and cachedOdds[i] != None:
                     totalProb += cachedOdds[i] * distribution[i]
                     totalWeight += distribution[i]
-#            print "compute odd", totalWeight
-#            print cachedOdds
-#            print distribution
+            print "compute odd", totalWeight
+            print cachedOdds
+            print distribution
             return totalProb / totalWeight, cachedOdds
 
     def flopOdd(self, myCards, board, flopWeights = None, replace = True):
-#        print "flop", self.flopOdds
+        print "flop", flopWeights, self.flopOdds 
         if myCards == None:
             myCards = self.myCards
         else:
             myCards.sort()
         boardString = "".join([number_to_card(x) for x in board])
         if flopWeights == None:
-            flopWeights = [1,1,1,1,1,1,1,1,1,1]
+            if self.flopWeights == None:
+                self.flopWeights = [1,1,1,1,1,1,1,1,1,1]
         else:
             if replace:
                 self.flopWeights = flopWeights
@@ -169,17 +174,21 @@ class Calculator:
             (prob3, odds3) = self.computeOdd(myCards[1:3], board, self.opCards, boardString, distribution, self.flopOdds, False, True)
             if prob1 > prob2 and prob1 > prob3:
                 self.flopOdds = odds1
-                return myCards[0], myCards[1], prob1
+                self.keptCards = myCards[0:1]
+                return prob1
             if prob2 > prob1 and prob2 > prob3:
                 self.flopOdds = odds2
-                return myCards[0], myCards[2], prob2
+                self.keptCards = (myCards[0],myCards[2])
+                return prob2
             else:
                 self.flopOdds = odds3
-                return myCards[1], myCards[2], prob3
+                self.keptCards = myCards[1:3]
+                return prob3
         else:
             (prob0, flopOdds) = self.computeOdd(myCards0, board, self.opCards, boardString, distribution, self.flopOdds, False, True)
             self.flopOdds = flopOdds
-            return myCards0[0], myCards0[1], prob0
+            self.keptCards = myCards[0]
+            return prob0
     
     def sampleOppCards(self, myCards, board, sampleSize = 5000):
         board.sort()
@@ -232,13 +241,17 @@ class Calculator:
         return result1[0], result1[1], result2
 
     #turn method
-    def turnOdd(self, myCards, board, turnWeights = [1,1,1,1,1,1,1,1,1,1], replace = True):
-#        print "turn", self.turnOdds
+    def turnOdd(self, myCards, board, turnWeights = None, replace = True):
+        print "turn", self.turnOdds
         boardString = "".join([number_to_card(x) for x in board])
-        if replace:
-            self.turnWeights = turnWeights
+        if turnWeights == None:
+            if self.turnWeights == None:
+                self.turnWeights = [1,1,1,1,1,1,1,1,1,1]
         else:
-            self.turnWeights = [a * b for a, b, in zip(self.turnWeights, turnWeights)]
+            if replace:
+                self.turnWeights = turnWeights
+            else:
+                self.turnWeights = [a * b for a, b, in zip(self.turnWeights, turnWeights)]
         self.turnDist = [None] * len(self.opCards)
         for i in range(len(self.opCards)):
             if board[-1] in self.opCards[i]:
@@ -251,11 +264,16 @@ class Calculator:
     
     #river method
     def riverOdd(self, myCards, board, riverWeights = [1,1,1,1,1,1,1,1,1,1], replace = True):
+        print "river", self.riverOdds
         boardString = "".join([number_to_card(x) for x in board])   
-        if replace:
-            self.turnWeights = riverWeights
+        if riverWeights == None:
+            if self.riverWeights == None:
+                self.riverWeights = [1,1,1,1,1,1,1,1,1,1]
         else:
-            self.turnWeights = [a * b for a, b, in zip(self.riverWeights, riverWeights)]
+            if replace:
+                self.riverWeights = riverWeights
+            else:
+                self.riverWeights = [a * b for a, b, in zip(self.riverWeights, riverWeights)]
         self.riverDist = [1] * len(self.opCards)
         for i in range(len(self.opCards)):
             if board[-1] in self.opCards[i] or self.turnDist[i] == 0:
