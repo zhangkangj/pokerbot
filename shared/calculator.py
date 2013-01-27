@@ -143,7 +143,7 @@ class Calculator:
             return totalProb / totalWeight, cachedOdds
 
     def flopOdd(self, myCards, board, flopWeights = None, replace = True):
-        print "flop", flopWeights, self.flopOdds 
+#        print "flop", flopWeights, self.flopOdds 
         if myCards == None:
             myCards = self.myCards
         else:
@@ -187,7 +187,7 @@ class Calculator:
         else:
             (prob0, flopOdds) = self.computeOdd(myCards0, board, self.opCards, boardString, distribution, self.flopOdds, False, True)
             self.flopOdds = flopOdds
-            self.keptCards = myCards
+            self.keptCards = myCards0
             return prob0
     
     def sampleOppCards(self, myCards, board, sampleSize = 5000):
@@ -242,7 +242,7 @@ class Calculator:
 
     #turn method
     def turnOdd(self, myCards, board, turnWeights = None, replace = True):
-        print "turn", self.turnOdds
+#        print "turn", self.turnOdds
         boardString = "".join([number_to_card(x) for x in board])
         if turnWeights == None:
             if self.turnWeights == None:
@@ -264,7 +264,7 @@ class Calculator:
     
     #river method
     def riverOdd(self, myCards, board, riverWeights = [1,1,1,1,1,1,1,1,1,1], replace = True):
-        print "river", self.riverOdds
+#        print "river", self.riverOdds
         boardString = "".join([number_to_card(x) for x in board])   
         if riverWeights == None:
             if self.riverWeights == None:
@@ -394,8 +394,8 @@ if __name__ == '__main__':
     start = datetime.now()
     weights1 = [1,1,1,1,1,1,1,1,1,1]
     weights2 = [1,1,1,1,1,1,1,1,1,1]
-    weights3 = [1,1,1,1,1,1,1,1,1,1]
-    weights4 = [1,1,1,1,1,1,1,1,1,1]
+    weights3 = [10,1,1,1,1,1,1,1,1,1]
+    weights4 = [10,1,1,1,1,1,1,1,1,1]
 
     for i in range(10):
         preflop = cal.preflopOdd(cards[0:3], weights1)
