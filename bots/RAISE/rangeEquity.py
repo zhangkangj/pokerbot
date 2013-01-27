@@ -88,7 +88,10 @@ class rangeEquity(Bot):
         if "DISCARD" in self.actions:
             if self.lastActions[-1][-1] == self.oppName:
                 self.getFlopRangedOdd(self.raiseRound-1)
-                
+            elif self.cal.keptCards == None: #all-in already
+                self.cal.flopOdd(
+                        [util.card_to_number(card) for card in self.holeCards],
+                        [util.card_to_number(card) for card in self.boardCards])                
             for card in self.holeCards:
                 if util.card_to_number(card) not in self.cal.keptCards:
                     self.discard(card)
