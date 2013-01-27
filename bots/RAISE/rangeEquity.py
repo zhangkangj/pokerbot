@@ -176,11 +176,11 @@ class rangeEquity(Bot):
 
     def turn(self):
         if self.position:
-            self.BBFlop()
+            self.BBTurn()
         else:
             if self.oppLastAction[0] == "CHECK": #opp gives up position
                 self.position = True
-                self.BBFlop()
+                self.BBTurn()
             else: #opp raises
                 oppRaiseAmount = self.oppLastAction[1]
                 potOdd = self.calPotOdd(1.0, oppRaiseAmount)
@@ -197,11 +197,11 @@ class rangeEquity(Bot):
     
     def river(self):
         if self.position:
-            self.BBFlop()
+            self.BBRiver()
         else:
             if self.oppLastAction[0] == "CHECK": #opp gives up position
                 self.position = True
-                self.BBFlop()
+                self.BBRiver()
             else: #opp raises
                 oppRaiseAmount = self.oppLastAction[1]
                 potOdd = self.calPotOdd(1.0, oppRaiseAmount)
@@ -245,7 +245,6 @@ class rangeEquity(Bot):
 #            else:
 #                self.preflopCall()
 
-    #pre-flop sub-methods
     def SBPreflop(self):
         if self.raiseRound == 0: #our first action
             self.equity = self.getPreflopRangedOdd(self.raiseRound)
@@ -267,6 +266,69 @@ class rangeEquity(Bot):
             else:
                 self.call()
 
+    def BBFlop(self):
+        if self.raiseRound == 0: #our first action
+            self.equity = self.getFlopRangedOdd(self.raiseRound)
+            
+            if self.equity < flopEqThresh:
+                self.fold()
+            else:
+                self.rais(flopRaiseRatio*self.bb)
+        elif self.raiseRound == 1: #opp has reraised
+            oppRaiseAmount = self.oppLastAction[1]
+            potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+            if self.button:
+                self.equity = self.getFlopRangedOdd(self.raiseRound)
+            else:
+                self.equity = self.getFlopRangedOdd(self.raiseRound-1)
+                            
+            if potOdd >= self.equity:
+                self.fold()
+            else:
+                self.call()        
+    
+    def BBTurn(self):
+        if self.raiseRound == 0: #our first action
+            self.equity = self.getTurnRangedOdd(self.raiseRound)
+            
+            if self.equity < flopEqThresh:
+                self.fold()
+            else:
+                self.rais(flopRaiseRatio*self.bb)
+        elif self.raiseRound == 1: #opp has reraised
+            oppRaiseAmount = self.oppLastAction[1]
+            potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+            if self.button:
+                self.equity = self.getTurnRangedOdd(self.raiseRound)
+            else:
+                self.equity = self.getTurnRangedOdd(self.raiseRound-1)
+                            
+            if potOdd >= self.equity:
+                self.fold()
+            else:
+                self.call()
+
+    def BBRiver(self):
+        if self.raiseRound == 0: #our first action
+            self.equity = self.getRiverRangedOdd(self.raiseRound)
+            
+            if self.equity < flopEqThresh:
+                self.fold()
+            else:
+                self.rais(flopRaiseRatio*self.bb)
+        elif self.raiseRound == 1: #opp has reraised
+            oppRaiseAmount = self.oppLastAction[1]
+            potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+            if self.button:
+                self.equity = self.getRiverRangedOdd(self.raiseRound)
+            else:
+                self.equity = self.getRiverRangedOdd(self.raiseRound-1)
+                            
+            if potOdd >= self.equity:
+                self.fold()
+            else:
+                self.call()
+    
     def getPreflopRangedOdd(self, raiseRound):
         if self.oppLastAction[0] == 'POST': #if we are SB and opp has not acted
             return self.cal.preflopOdd(
@@ -314,33 +376,12 @@ class rangeEquity(Bot):
 #            print self.holeCards
 #            print self.boardCards
 #            print oppDist
+            print "computing river odd:" + str(raiseRound)
             return self.cal.riverOdd(
                     [util.card_to_number(card) for card in self.holeCards],
                     [util.card_to_number(card) for card in self.boardCards],                
                     riverWeights = oppDist)
-
-# flop sub-methods
-    def BBFlop(self):
-        if self.raiseRound == 0: #our first action
-            self.equity = self.getFlopRangedOdd(self.raiseRound)
-            
-            if self.equity < flopEqThresh:
-                self.fold()
-            else:
-                self.rais(flopRaiseRatio*self.bb)
-        elif self.raiseRound == 1: #opp has reraised
-            oppRaiseAmount = self.oppLastAction[1]
-            potOdd = self.calPotOdd(1.0, oppRaiseAmount)
-            if self.button:
-                self.equity = self.getFlopRangedOdd(self.raiseRound)
-            else:
-                self.equity = self.getFlopRangedOdd(self.raiseRound-1)
-                            
-            if potOdd >= self.equity:
-                self.fold()
-            else:
-                self.call()        
-    
+                
     #myRaiseRatio >= 1.0
     def calPotOdd(self, myRaiseRatio, oppRaiseAmount):
         myPot = self.potSize - oppRaiseAmount
