@@ -87,8 +87,7 @@ class rangeEquity(Bot):
     def flop(self):
         if "DISCARD" in self.actions:
             if self.lastActions[-1][-1] == self.oppName:
-                print "discarding:" + str(self.raiseRound)
-                self.getFlopRangedOdd(self.raiseRound)
+                self.getFlopRangedOdd(self.raiseRound-1)
                 
             for card in self.holeCards:
                 print self.cal.keptCards
