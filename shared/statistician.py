@@ -83,29 +83,47 @@ class Statistician:
    
         oppRange = self.getStreetRange(button, oppAction, street, raiseRound)      
         oppLevels = self.fromRangeToLevels(oppRange)
-        return self.fromLevelsToDist(oppLevels, numLevels = self.numLevels)
+        oppDist = self.fromLevelsToDist(oppLevels, numLevels = self.numLevels)
+        
+        raiseHistSorted = self.getSortedArray(button, street, raiseRound)
+        if self.hasEnoughHistory(raiseHistSorted):
+            oppDist = self.smoothDist(oppDist, raiseHistSorted)
+        print oppDist
+        return oppDist
+
+    def hasEnoughHistory(self, history):
+        if len(history) < self.initWindowSize:
+            return False
+        else:
+            return True
+
+    def getSortedArray(self, button, street, raiseRound):
+        if button:
+            return self.SBStatsSorted[street][raiseRound]
+        else:
+            return self.BBStatsSorted[street][raiseRound]
 
     def getStreetRange(self, button, oppAction, street, raiseRound):
         if button:
-            raiseHistSorted = self.SBStatsSorted[street][raiseRound]
             prior = SBPriors[street][raiseRound]
         else:
-            raiseHistSorted = self.BBStatsSorted[street][raiseRound]            
             prior = BBPriors[street][raiseRound]
 
+        raiseHistSorted = self.getSortedArray(button, street, raiseRound)
         raiseAmount = self.getRaiseAmount(oppAction)
         if raiseRound == 0:
-            if len(raiseHistSorted) < self.initWindowSize:
+            if not self.hasEnoughHistory(raiseHistSorted):
                 if raiseAmount == -1:
                     self.range = prior[0]
                 elif raiseAmount == 0:
                     self.range = prior[1]                
                 else:
                     self.range = prior[2]                
-            else:           
+            else:
+#                print raiseHistSorted
                 self.oppRange = self.compareNumToArray(raiseAmount, raiseHistSorted)
         else:
-            if len(raiseHistSorted) < self.initWindowSize:
+            if not self.hasEnoughHistory(raiseHistSorted):
                 raisePercentage = float(prior[2][1] - prior[2][0])
             else:
                 raisePercentage = float(self.getNumPosElements(raiseHistSorted)) / len(raiseHistSorted)         
@@ -182,11 +200,12 @@ class Statistician:
         numAppearances = sortedArray.count(num)
         
         if numAppearances == 0:
+            numBigger = len(sortedArray)-1
+
             for i in range(len(sortedArray)):
                 if num > sortedArray[i]:
                     numBigger = i
                     break
-            numBigger = len(sortedArray)-1
         else:
             numBigger = sortedArray.index(num)
             
@@ -230,10 +249,36 @@ class Statistician:
             else:
                 levelArray[i] = 0
         return levelArray                          
-                                 
+    
+    def smoothDist(self, dist, sortedArray):
+        totalWeight = float(sum(dist))
+                
+        numFolds = sortedArray.count(-1)
+        numCalls = sortedArray.count(0)
+        foldPercentage = numFolds/float(len(sortedArray))
+        raisePercentage = 1 - (numFolds + numCalls)/float(len(sortedArray))
+        
+        foldLevels = int(round(foldPercentage*self.numLevels))
+        raiseLevels = int(round(raisePercentage*self.numLevels))
+                
+        avgWeight1 = totalWeight / (self.numLevels - foldLevels)
+        avgWeight2 = totalWeight / raiseLevels
+        dist1 = [0]*foldLevels
+        dist2 = [0]*(self.numLevels - raiseLevels)
+        dist1.extend([avgWeight1]*(self.numLevels - foldLevels))
+        dist2.extend([avgWeight2]*raiseLevels)
+        
+        return [(x+y+z) for (x, y, z) in zip(dist, dist1, dist2)]
+        
 if __name__ == "__main__":
     pass
 
+    #check smoothing
+#    stat = Statistician(1000)
+#    dist = [0,0,0,1,1,1,1,0,0,0]
+#    sortedArray = [1]*10 + [0]*10 + [-1]*10
+#    print stat.smoothDist(dist, sortedArray)
+    
 #    #check self.windowSize
 #    stat1 = Statistician(1000)
 #    print str(stat1.windowSize) + "?=300"
