@@ -302,7 +302,7 @@ class rangeEquity(Bot):
             return self.cal.turnOdd(
                     [util.card_to_number(card) for card in self.holeCards],
                     [util.card_to_number(card) for card in self.boardCards],                
-                    flopWeights = oppDist)
+                    turnWeights = oppDist)
             
     def getRiverRangedOdd(self, raiseRound):
         if (not self.button) and self.raiseRound == 0: #if we are BB and opp has not acted yet
@@ -317,7 +317,7 @@ class rangeEquity(Bot):
             return self.cal.riverOdd(
                     [util.card_to_number(card) for card in self.holeCards],
                     [util.card_to_number(card) for card in self.boardCards],                
-                    flopWeights = oppDist)
+                    riverWeights = oppDist)
 
 # flop sub-methods
     def BBFlop(self):
