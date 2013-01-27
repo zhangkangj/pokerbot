@@ -8,32 +8,36 @@ import math
 
 #fixed prior distributions
 SBPreflop = [
-             [[0.5,1], [0.2,0.5], [0,0.2]]
+             [[0.5,1], [0.2,0.5], [0,0.2]],
+             [[0.9,1], [0.6,0.9], [0,0.6]]             
              ]
 BBPreflop = [
              [[0.9,1], [0.6,0.9], [0,0.6]],
-             [[0.5,0.6], [0.1,0.5], [0,0.1]]
+             [[0.5,1], [0.2,0.5], [0,0.2]]
              ]
 SBFlop = [
           [[0.9,1], [0.6,0.9], [0,0.6]],
-          [[0.5,0.6], [0.1,0.5], [0,0.1]]
+          [[0.5,1], [0.2,0.5], [0,0.2]]
           ]
 BBFlop = [
-          [[0.5,1], [0.2,0.5], [0,0.2]]
+          [[0.5,1], [0.2,0.5], [0,0.2]],
+          [[0.9,1], [0.6,0.9], [0,0.6]]          
           ]
 SBTurn = [
           [[0.9,1], [0.6,0.9], [0,0.6]],
-          [[0.5,0.6], [0.1,0.5], [0,0.1]]          
+          [[0.5,1], [0.2,0.5], [0,0.2]]
           ]
 BBTurn = [
-          [[0.5,1], [0.2,0.5], [0,0.2]]
+          [[0.5,1], [0.2,0.5], [0,0.2]],
+          [[0.9,1], [0.6,0.9], [0,0.6]]          
           ]
 SBRiver = [
            [[0.9,1], [0.6,0.9], [0,0.6]],
-           [[0.5,0.6], [0.1,0.5], [0,0.1]]           
+           [[0.5,1], [0.2,0.5], [0,0.2]]
            ]
 BBRiver = [
-           [[0.5,1], [0.2,0.5], [0,0.2]]
+           [[0.5,1], [0.2,0.5], [0,0.2]],
+           [[0.9,1], [0.6,0.9], [0,0.6]]           
            ]
 SBPriors = [SBPreflop, SBFlop, SBTurn, SBRiver]
 BBPriors = [BBPreflop, BBFlop, BBTurn, BBRiver]
@@ -90,20 +94,23 @@ class Statistician:
             prior = BBPriors[street][raiseRound]
 
         raiseAmount = self.getRaiseAmount(oppAction)
-        if len(raiseHistSorted) < self.initWindowSize:
-            if raiseAmount == -1:
-                return prior[0]
-            elif raiseAmount == 0:
-                return prior[1]                
-            else:
-                return prior[2]                
-        else:           
-            if raiseRound == 0:
+        if raiseRound == 0:
+            if len(raiseHistSorted) < self.initWindowSize:
+                if raiseAmount == -1:
+                    self.range = prior[0]
+                elif raiseAmount == 0:
+                    self.range = prior[1]                
+                else:
+                    self.range = prior[2]                
+            else:           
                 self.oppRange = self.compareNumToArray(raiseAmount, raiseHistSorted)
+        else:
+            if len(raiseHistSorted) < self.initWindowSize:
+                raisePercentage = float(prior[2][1] - prior[2][0])
             else:
-                raisePercentage = float(self.getNumPosElements(raiseHistSorted)) / len(raiseHistSorted)
-                self.oppRange = self.refineOppRange(raisePercentage, self.oppRange)
+                raisePercentage = float(self.getNumPosElements(raiseHistSorted)) / len(raiseHistSorted)         
             
+            self.oppRange = self.refineOppRange(raisePercentage, self.oppRange)
             return self.oppRange                
     
     def processStreetAction(self, button, oppAction, street, raiseRound):
