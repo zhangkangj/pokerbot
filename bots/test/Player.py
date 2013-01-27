@@ -9,14 +9,16 @@ class Player(Bot):
         Bot.__init__(self)
         self.preflopWeights = []
         self.flopWeights = []
-        self.preflopWeights1 = [1,1,2,2,2,2,2,2,1,1]
-        self.preflopWeights2 = [1,1,1,1,1,2,3,4,4,4]
-        self.preflopWeights3 = [1,1,2,2,2,2,3,3,2,1]
-        self.flopWeights1 = [2,3,3,3,3,2,2,2,2,2]
-        self.flopWeights2 = [1,1,2,2,2,3,3,3,3,2]
-        self.flopWeights3 = [1,2,2,2,2,2,3,2,2,1]
-        self.flopWeights4 = [1,1,2,2,2,3,3,4,4,3]
-        self.flopWeights5 = [1,2,2,2,2,3,3,3,3,2]
+#        self.preflopWeights1 = [1,1,2,2,2,2,2,2,1,1]
+#        self.preflopWeights2 = [1,1,1,1,1,2,3,4,4,4]
+#        self.preflopWeights3 = [1,1,2,2,2,2,3,3,2,1]
+#        self.flopWeights1 = [2,3,3,3,3,2,2,2,2,2]
+#        self.flopWeights2 = [1,1,2,2,2,3,3,3,3,2]
+#        self.flopWeights3 = [1,2,2,2,2,2,3,2,2,1]
+#        self.flopWeights4 = [1,1,2,2,2,3,3,4,4,3]
+#        self.flopWeights5 = [1,2,2,2,2,3,3,3,3,2]
+        self.preflopWeights1 = self.preflopWeights2 = self.preflopWeights3 = [1]* 10 
+        self.flopWeights1 = self.flopWeights2 = self.flopWeights3 = self.flopWeights4 = self.flopWeights5 = [1]* 10 
         
     def preflop(self):
         if self.raiseRound == 0 and self.button:

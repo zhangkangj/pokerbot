@@ -158,7 +158,7 @@ class Calculator:
             else:
                 self.flopWeights = [a * b for a, b, in zip(self.flopWeights, flopWeights)]
         if self.opCards == None:
-            (self.opCards, self.twoFlopOdds, self.preflopDist) = self.sampleOppCards(myCards, board, 6000)
+            (self.opCards, self.twoFlopOdds, self.preflopDist) = self.sampleOppCards(myCards, board, 5000)
         sampleSize = len(self.opCards)
         self.flopDist = [0] * sampleSize
 #        print self.flopWeights
@@ -185,7 +185,7 @@ class Calculator:
                 self.keptCards = myCards[1:3]
                 return prob3
         else:
-            (prob0, flopOdds) = self.computeOdd(myCards0, board, self.opCards, boardString, distribution, self.flopOdds, False, True)
+            (prob0, flopOdds) = self.computeOdd(myCards0, board, self.opCards, boardString, distribution, self.flopOdds, False, True, sampleRate)
             self.flopOdds = flopOdds
             self.keptCards = myCards0
             return prob0
@@ -358,7 +358,7 @@ if __name__ == '__main__':
     
     cal = Calculator()
     cards = draw_cards(8, True)
-    cards = c2n(["7h", "Tc", "4s", "6h", "8d", "Js", "8s", "3s"])
+#    cards = c2n(["7h", "Tc", "4s", "6h", "8d", "Js", "8s", "3s"])
     print cards, n2c(cards[0:3])
     
     board = cards[3:6]
@@ -405,14 +405,14 @@ if __name__ == '__main__':
     print myCardString, n2c(cards[3:8]), odd / n
 
     start = datetime.now()
-    weights1 = [1,1,1,1,1,2,3,4,4,4]
-    weights2 = [1,1,1,1,1,1,1,1,1,10]
+    weights1 = [1,1,1,1,1,1,1,1,1,1]
+    weights2 = [1,1,1,1,1,1,1,1,1,1]
     weights3 = [10,1,1,1,1,1,1,1,1,1]
     weights4 = [10,1,1,1,1,1,1,1,1,1]
 
     for i in range(10):
         preflop = cal.preflopOdd(cards[0:3], weights1)
-        flop = cal.flopOdd(cards[0:3], cards[3:6], weights2)
+        flop = cal.flopOdd(cards[0:3], cards[3:6], weights2, True, .6)
         myCards = cal.keptCards
         turn = cal.turnOdd(myCards, cards[3:7])
         river = cal.riverOdd(myCards, cards[3:8])

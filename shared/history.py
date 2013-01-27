@@ -11,7 +11,7 @@ from shared.util import c2n, n2c
 from shared.pbots_calc import calc
 
 class MatchPaser:
-    def __init__(self, handNumber = 1000):
+    def __init__(self, handNumber = 000):
         self.handNumber = handNumber
         self.stats = [None] * 4
         self.cal = Calculator()
@@ -288,7 +288,7 @@ class MatchPaser:
     
 
 if __name__ == '__main__':
-    p = MatchPaser()
+    p = MatchPaser(2000)
     p.parse("P2", "", "P1")
     p.dump()
     
