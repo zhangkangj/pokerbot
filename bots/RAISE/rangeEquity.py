@@ -26,11 +26,11 @@ class rangeEquity(Bot):
         #requested by Mark for post flop
 #        self.isPreflopAggressor = None
                   
-    def prepareNewHand(self):
-        self.equity = self.cal.preflopOdd(
-            [util.card_to_number(card) for card in self.holeCards])
-#        self.numPreflopRaises = 0
-#        self.isPreflopAggressor = None
+#    def prepareNewHand(self):
+#        self.equity = self.cal.preflopOdd(
+#            [util.card_to_number(card) for card in self.holeCards])
+##        self.numPreflopRaises = 0
+##        self.isPreflopAggressor = None
 
 # old preflop strategy where it is possible to go beyond one raise round
 #    def preflop(self):
@@ -94,8 +94,8 @@ class rangeEquity(Bot):
                 if util.card_to_number(card) not in self.cal.keptCards:
                     self.discard(card)
                     break
-
         else:    
+#            self.check()
             if self.position:
                 self.BBFlop()
             else:
@@ -174,6 +174,7 @@ class rangeEquity(Bot):
 #                    self.fold()
 
     def turn(self):
+#        self.flop()
         if self.position:
             self.BBTurn()
         else:
@@ -195,6 +196,7 @@ class rangeEquity(Bot):
 
     
     def river(self):
+#        self.flop()
         if self.position:
             self.BBRiver()
         else:
@@ -253,8 +255,9 @@ class rangeEquity(Bot):
             else:
                 self.rais(preflopRaiseRatio*self.bb)
         elif self.raiseRound == 1: #opp has reraised
-            oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 0, self.raiseRound)
-            print "opp BB raises: " + str(oppRange)            
+            if self.button:
+                oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 0, self.raiseRound)
+                print "SB, opp reraises: " + str(oppRange)            
             
             oppRaiseAmount = self.oppLastAction[1]
             potOdd = self.calPotOdd(1.0, oppRaiseAmount)
