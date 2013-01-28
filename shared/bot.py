@@ -187,8 +187,11 @@ class Bot(object):
         
     def call(self):
         #print "calling"
-        self.myLastAction = ["CALL"]
-        self.sendMessage("CALL")
+        if "CHECK" in self.actions:
+            self.check()
+        else:
+            self.myLastAction = ["CALL"]
+            self.sendMessage("CALL")
     
     def rais(self, amount):
         amount = min(self.maxBet, max(self.minBet, amount))
