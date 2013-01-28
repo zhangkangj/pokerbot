@@ -73,6 +73,7 @@ class Statistician:
                 raiseRound = 0
             elif action[0] in ["SHOW", "REFUND", "WIN"]: #the end of the hand
                 self.processEnd(button)
+                break
             elif action[-1] == oppName:
                 self.processStreetAction(button, action, street, raiseRound)            
                 raiseRound += 1
