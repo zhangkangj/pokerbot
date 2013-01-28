@@ -144,7 +144,8 @@ class Player(Bot):
             self.equity = self.cal2.flopOdd(c2n(self.holeCards), c2n(self.boardCards), weights)
             self.cal2.reset()
             profit = foldRate * self.potSize + (1 - foldRate) * (self.stackSize * 2 * self.equity - self.maxBet)
-            if profit > 0:
+            print self.holeCards, self.boardCards, self.equity, profit, weights
+            if profit > 0 and self.potSize < 200:
                 distribution.append(None)
                 if len(distribution) > self.window:
                     distribution.pop()
