@@ -104,10 +104,14 @@ class Statistician:
 
     def getStreetRange(self, button, oppAction, street, raiseRound):
         if button:
+            if street == 0: #if in pre-flop, SB always query opp's action from previous raise round.
+                raiseRound = raiseRound - 1            
             prior = SBPriors[street][raiseRound]
         else:
             prior = BBPriors[street][raiseRound]
-
+            if street != 0: #if not in pre-flop, BB always query opp's action from previous raise round
+                raiseRound = raiseRound - 1
+            
         raiseHistSorted = self.getSortedArray(button, street, raiseRound)
         raiseAmount = self.getRaiseAmount(oppAction)
         if raiseRound == 0:
