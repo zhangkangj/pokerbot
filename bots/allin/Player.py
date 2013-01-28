@@ -161,7 +161,7 @@ class Player(Bot):
         else: 
             distribution = self.turnBBAllin
         distribution.append(None)
-
+        self.check()
     
     def river(self):
         self.check()
