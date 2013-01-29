@@ -130,7 +130,19 @@ class Statistician:
             if not self.hasEnoughHistory(raiseHistSorted):
                 raisePercentage = float(prior[2][1] - prior[2][0])
             else:
-                raisePercentage = float(self.getNumPosElements(raiseHistSorted)) / len(raiseHistSorted)         
+                numAppearances = raiseHistSorted.count(raiseAmount)
+                
+                if numAppearances == 0:
+                    numBigger = len(raiseHistSorted)-1
+        
+                    for i in range(len(raiseHistSorted)):
+                        if raiseAmount > raiseHistSorted[i]:
+                            numBigger = i
+                            break
+                        
+                    raisePercentage = float(numBigger+numAppearances) / len(raiseHistSorted) 
+                
+#                raisePercentage = float(self.getNumPosElements(raiseHistSorted)) / len(raiseHistSorted)         
             
             self.oppRange = self.refineOppRange(raisePercentage, self.oppRange)
             
