@@ -139,13 +139,17 @@ class Statistician:
                         if raiseAmount > raiseHistSorted[i]:
                             numBigger = i
                             break
+                else:
+                    numBigger = raiseHistSorted.index(raiseAmount)
                         
-                    raisePercentage = float(numBigger+numAppearances) / len(raiseHistSorted) 
-                
+                raisePercentage = float(numBigger + numAppearances) / len(raiseHistSorted)
+                print "raisePercentage: " + str(raisePercentage)
 #                raisePercentage = float(self.getNumPosElements(raiseHistSorted)) / len(raiseHistSorted)         
             
+#            print str(oppAction) + "|" + str(street) + "|" + str(raiseRound) + "|" + str(raisePercentage)
+#            print "pre-range: " + str(self.oppRange)
             self.oppRange = self.refineOppRange(raisePercentage, self.oppRange)
-            
+#            print "post-range: " + str(self.oppRange)
         return self.oppRange                
     
     def processStreetAction(self, button, oppAction, street, raiseRound):
