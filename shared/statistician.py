@@ -89,7 +89,10 @@ class Statistician:
         oppDist = self.fromLevelsToDist(oppLevels, numLevels = self.numLevels)
         
         if self.hasEnoughHistory(self.raiseHistSorted):
-            oppDist = self.smoothDist(oppDist, self.raiseHistSorted)
+            oppDist = self.smoothDist(oppDist, sortedArray = self.raiseHistSorted)
+        else:
+            oppDist = self.smoothDist(oppDist)
+            
         return oppDist
 
     def hasEnoughHistory(self, history):
@@ -272,32 +275,36 @@ class Statistician:
         return levelArray                          
     
     # don't modify sortedArray
-    def smoothDist(self, dist, sortedArray):
+    def smoothDist(self, dist, sortedArray = None):
         totalWeight = float(sum(dist))
-                
-        numFolds = sortedArray.count(-1)
-        numCalls = sortedArray.count(0)
-        foldPercentage = numFolds/float(len(sortedArray))
-        raisePercentage = 1 - (numFolds + numCalls)/float(len(sortedArray))
         
-        foldLevels = int(round(foldPercentage*self.numLevels))
-        raiseLevels = int(round(raisePercentage*self.numLevels))
-        
-        if foldLevels == self.numLevels:
-            dist1 = [0]*self.numLevels
-        else:   
-            avgWeight1 = totalWeight / (self.numLevels - foldLevels)
-            dist1 = [0]*foldLevels
-            dist1.extend([avgWeight1]*(self.numLevels - foldLevels))
+        if sortedArray == None:
+            dist1 = [totalWeight/self.numLevels]*self.numLevels
+            return [(x+y) for (x,y) in zip(dist, dist1)]
+        else:        
+            numFolds = sortedArray.count(-1)
+            numCalls = sortedArray.count(0)
+            foldPercentage = numFolds/float(len(sortedArray))
+            raisePercentage = 1 - (numFolds + numCalls)/float(len(sortedArray))
             
-        if raiseLevels == 0:
-            dist2 = [0]*self.numLevels
-        else:
-            avgWeight2 = totalWeight / raiseLevels
-            dist2 = [0]*(self.numLevels - raiseLevels)
-            dist2.extend([avgWeight2]*raiseLevels)
-        
-        return [(x+y+z) for (x, y, z) in zip(dist, dist1, dist2)]
+            foldLevels = int(round(foldPercentage*self.numLevels))
+            raiseLevels = int(round(raisePercentage*self.numLevels))
+            
+            if foldLevels == self.numLevels:
+                dist1 = [0]*self.numLevels
+            else:   
+                avgWeight1 = totalWeight / (self.numLevels - foldLevels)
+                dist1 = [0]*foldLevels
+                dist1.extend([avgWeight1]*(self.numLevels - foldLevels))
+                
+            if raiseLevels == 0:
+                dist2 = [0]*self.numLevels
+            else:
+                avgWeight2 = totalWeight / raiseLevels
+                dist2 = [0]*(self.numLevels - raiseLevels)
+                dist2.extend([avgWeight2]*raiseLevels)
+            
+            return [(x+y+z) for (x, y, z) in zip(dist, dist1, dist2)]
         
 if __name__ == "__main__":
     pass
