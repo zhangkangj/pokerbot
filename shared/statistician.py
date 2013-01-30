@@ -143,7 +143,6 @@ class Statistician:
                     numBigger = raiseHistSorted.index(raiseAmount)
                         
                 raisePercentage = float(numBigger + numAppearances) / len(raiseHistSorted)
-                print "raisePercentage: " + str(raisePercentage)
 #                raisePercentage = float(self.getNumPosElements(raiseHistSorted)) / len(raiseHistSorted)         
             
 #            print str(oppAction) + "|" + str(street) + "|" + str(raiseRound) + "|" + str(raisePercentage)
@@ -282,7 +281,6 @@ class Statistician:
         raiseLevels = int(round(raisePercentage*self.numLevels))
         
         if foldLevels == self.numLevels:
-            print sortedArray
             dist1 = [0]*self.numLevels
         else:   
             avgWeight1 = totalWeight / (self.numLevels - foldLevels)
@@ -290,7 +288,6 @@ class Statistician:
             dist1.extend([avgWeight1]*(self.numLevels - foldLevels))
             
         if raiseLevels == 0:
-            print sortedArray
             dist2 = [0]*self.numLevels
         else:
             avgWeight2 = totalWeight / raiseLevels
