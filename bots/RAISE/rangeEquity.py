@@ -75,11 +75,8 @@ class rangeEquity(Bot):
                 oppRaiseAmount = self.oppLastAction[1]
                 potOdd = self.calPotOdd(1.0, oppRaiseAmount)
                 
-                oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 0, self.raiseRound)
-                print "BB, opp raises: " + str(oppRange)
-
                 self.equity = self.getPreflopRangedOdd()
-                if potOdd >= self.equity:
+                if potOdd > self.equity:
                     self.fold()
                 else:
                     self.call()                                
@@ -106,8 +103,8 @@ class rangeEquity(Bot):
                     oppRaiseAmount = self.oppLastAction[1]
                     potOdd = self.calPotOdd(1.0, oppRaiseAmount)
                     
-#                    oppRange = self.stat.getPreflopRange(self.button, self.raiseRound, self.oppLastAction)
-#                        print oppRange
+                    oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 1, self.raiseRound)
+                    print " Flop, SB, opp raises in round 0: " + str(oppRange)
     
                     self.equity = self.getFlopRangedOdd()
                     if potOdd > self.equity:
@@ -245,6 +242,10 @@ class rangeEquity(Bot):
 
     def SBPreflop(self):
         if self.raiseRound == 0: #our first action
+            if not self.button:
+                oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 0, self.raiseRound)
+                print "Preflop, BB, opp calls in round 0: " + str(oppRange)
+                
             self.equity = self.getPreflopRangedOdd()
             
             if self.equity < preflopEqThresh:
@@ -254,19 +255,26 @@ class rangeEquity(Bot):
         elif self.raiseRound == 1: #opp has reraised
             if self.button:
                 oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 0, self.raiseRound)
-                print "SB, opp reraises: " + str(oppRange)            
+                print "Preflop, SB, opp reraises in round 0: " + str(oppRange)
+            else:
+                oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 0, self.raiseRound)
+                print "Preflop, BB, opp reraises in round 1: " + str(oppRange)                           
             
             oppRaiseAmount = self.oppLastAction[1]
             potOdd = self.calPotOdd(1.0, oppRaiseAmount)
             self.equity = self.getPreflopRangedOdd()
                             
-            if potOdd >= self.equity:
+            if potOdd > self.equity:
                 self.fold()
             else:
                 self.call()
 
     def BBFlop(self):
         if self.raiseRound == 0: #our first action
+            if self.button:
+                oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 1, self.raiseRound)
+                print " Flop, SB, opp checks in round 0: " + str(oppRange)
+            
             self.equity = self.getFlopRangedOdd()
             
             if self.equity < flopEqThresh:
@@ -274,6 +282,13 @@ class rangeEquity(Bot):
             else:
                 self.rais(flopRaiseRatio*self.bb)
         elif self.raiseRound == 1: #opp has reraised
+            if self.button:
+                oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 1, self.raiseRound)
+                print " Flop, SB, opp reraises in round 1: " + str(oppRange)
+            else: #two cases actually
+                oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 1, self.raiseRound)
+                print " Flop, BB, opp reraises in round 0: " + str(oppRange)                                           
+                
             oppRaiseAmount = self.oppLastAction[1]
             potOdd = self.calPotOdd(1.0, oppRaiseAmount)
             self.equity = self.getFlopRangedOdd()
@@ -335,6 +350,10 @@ class rangeEquity(Bot):
 #            print self.holeCards
 #            print self.boardCards
 #            print oppDist
+            print self.numBoardCards
+            print self.actions
+            print str(self.oppLastAction) + '|' + str(self.raiseRound)
+            print oppDist
             return self.cal.flopOdd(util.c2n(self.holeCards), util.c2n(self.boardCards), flopWeights = oppDist)
             
     def getTurnRangedOdd(self):
