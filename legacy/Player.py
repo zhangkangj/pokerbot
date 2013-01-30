@@ -15,6 +15,7 @@ class Player(Bot):
         self.preflopSBAllin = []
         self.preflopBBAllin = []
         self.preflopAllinWin = []
+        
         self.flopSBAllin = []
         self.flopBBAllin = []
         self.flopAllinWin = []
@@ -24,10 +25,6 @@ class Player(Bot):
         self.riverSBAllin = []
         self.riverBBAllin = []
         self.riverAllinWin = []
-        
-        self.preflopWeights1 = [1,1,2,2,2,2,2,2,1,1]
-        self.preflopWeights2 = [1,1,1,1,1,2,3,5,5,5]
-        self.preflopWeights3 = [1,1,2,2,2,2,3,3,2,1]
         
     def prepareNewHand(self):
         self.preflopAllin = False
@@ -60,11 +57,11 @@ class Player(Bot):
             weights = [a*b for a,b in zip(temp2, weights)]
         foldRate = fold/(len(distribution) + 0.0001)
         return weights, foldRate
-    
+     
     def preflop(self):
         if self.button:
             distribution = self.preflopSBAllin
-        else: 
+        else:
             distribution = self.preflopBBAllin
         (weights, foldRate) = self.preflopAllinRange(distribution)
         self.equity = self.cal2.preflopOdd(c2n(self.holeCards), weights)
@@ -108,24 +105,6 @@ class Player(Bot):
                 self.call()
             else:
                 self.fold()
-
-    def flopAllinRange(self, distribution):
-        fold = 0.0
-        weights = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
-        temp = []
-        for i in range(len(distribution)):
-            value = distribution[i]
-            if value == None:
-                fold += 1
-            else:
-                weights[value] += (i+1)
-                temp.append(value)
-                if len(temp) > 5:
-                    temp.pop(0)
-        if len(temp) == 5:
-            temp2 = [0] * min(temp) + [1] * (10 - min(temp))
-            weights = [a*b for a,b in zip(temp2, weights)]
-        return weights, fold/(len(distribution)+0.0001)
                 
     def flop(self):
         if "DISCARD" in self.actions:
@@ -135,42 +114,19 @@ class Player(Bot):
                 if card not in n2c(self.cal.keptCards):
                     self.discard(card)
         else:
-            if self.button:
-                distribution = self.flopSBAllin
-            else: 
-                distribution = self.flopBBAllin
-            distribution.append(None)
-            (weights, foldRate) = self.flopAllinRange(distribution)
-            self.equity = self.cal2.flopOdd(c2n(self.holeCards), c2n(self.boardCards), weights)
-            self.cal2.reset()
-            profit = foldRate * self.potSize + (1 - foldRate) * (self.stackSize * 2 * self.equity - self.maxBet)
-            print self.holeCards, self.boardCards, self.equity, profit, weights
-            if profit > 0 and self.potSize < 200:
-                distribution.append(None)
-                if len(distribution) > self.window:
-                    distribution.pop()
-                self.flopAllin = True
-                self.rais(self.maxBet)
-                return
-            else:
-                self.check()
-
+            self.check()
+            
     def turn(self):
-        if self.button:
-            distribution = self.turnSBAllin
-        else: 
-            distribution = self.turnBBAllin
-        distribution.append(None)
         self.check()
     
     def river(self):
         self.check()
     
     def handOver(self):
-        print 1.0 * sum(self.preflopAllinWin) / (len(self.preflopAllinWin)+1), self.preflopAllinWin
-        print 1.0 * sum(self.flopAllinWin) / (len(self.flopAllinWin)+1), self.flopAllinWin
-        print 1.0 * sum(self.turnAllinWin) / (len(self.turnAllinWin)+1), self.turnAllinWin
-        print 1.0 * sum(self.riverAllinWin) / (len(self.riverAllinWin)+1), self.riverAllinWin
+        print 1.0 * sum(self.preflopAllinWin) / (len(self.preflopAllinWin)+1)
+        print 1.0 * sum(self.flopAllinWin) / (len(self.flopAllinWin)+1)
+        print 1.0 * sum(self.turnAllinWin) / (len(self.turnAllinWin)+1)
+        print 1.0 * sum(self.riverAllinWin) / (len(self.riverAllinWin)+1)
         for action in self.lastActions:
             winAmount = None
             if "WIN" in action:
@@ -182,20 +138,20 @@ class Player(Bot):
             if winAmount != None:
                 if self.preflopAllin:
                     self.preflopAllinWin.append(winAmount)
-                    if len(self.preflopAllinWin) > 100:
-                        self.preflopAllinWin.pop()
+                    if len(self.preflopAllinWin) > 1000:
+                        self.preflopAllinWin.pop(0)
                 elif self.flopAllin:
                     self.flopAllinWin.append(winAmount)
-                    if len(self.flopAllinWin) > 100:
-                        self.flopAllinWin.pop()
+                    if len(self.flopAllinWin) > 1000:
+                        self.flopAllinWin.pop(0)
                 elif self.turnAllin:
                     self.turnAllinWin.append(winAmount)
-                    if len(self.turnAllinWin) > 100:
-                        self.turnAllinWin.pop()
+                    if len(self.turnAllinWin) > 1000:
+                        self.turnAllinWin.pop(0)
                 elif self.riverAllin:
                     self.riverAllinWin.append(winAmount)
-                    if len(self.riverAllinWin) > 100:
-                        self.riverAllinWin.pop()                        
+                    if len(self.riverAllinWin) > 1000:
+                        self.riverAllinWin.pop(0)                        
             if "SHOW" in action and self.oppName in action:
                 (o1, o2) = c2n(action[1:3])
                 if o1 > o2:

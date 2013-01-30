@@ -170,19 +170,19 @@ def mergeRanged():
                     
 if __name__ == '__main__':
     calculator = Calculator()
-    for i in range(1):
-        cards = draw_cards(3, True)
-#        cards = c2n("8s 5c Qc".split(" "))
-        print n2c(cards)
-        
-        print calculator.preflopOdd(cards, [1,1,1,1,1,1,1,1,1,1], [1,1,1,1,1,1,1,1,1,1])
-        print calculator.preflopOdd(cards, [1,1,1,1,1,1,1,1,1,1])
-        print calculator.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1], [1,1,1,1,1,1,1,1,1,1])
-        print calculator.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1])
-        print calculator.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1], [0,0,0,0,0,0,0,0,0,1])
-        
-        opCards = calculator.samplePreflop([0,0,0,0,0,0,0,0,0,1], 600)
-        print preflopOdd(cards, opCards)
+#    for i in range(1):
+#        cards = draw_cards(3, True)
+##        cards = c2n("8s 5c Qc".split(" "))
+#        print n2c(cards)
+#        
+#        print calculator.preflopOdd(cards, [1,1,1,1,1,1,1,1,1,1], [1,1,1,1,1,1,1,1,1,1])
+#        print calculator.preflopOdd(cards, [1,1,1,1,1,1,1,1,1,1])
+#        print calculator.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1], [1,1,1,1,1,1,1,1,1,1])
+#        print calculator.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1])
+#        print calculator.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1], [0,0,0,0,0,0,0,0,0,1])
+#        
+#        opCards = calculator.samplePreflop([0,0,0,0,0,0,0,0,0,1], 600)
+#        print preflopOdd(cards, opCards)
 #        result = []
 #        for i in range(10):
 #            weights = [0] * 10
@@ -198,22 +198,24 @@ if __name__ == '__main__':
 #    #print preflopOdd(myCards, None, 400)
 
 
-    index = 9
-    weights = [0] * 10
-    weights[index] = 1
-    opCards = calculator.samplePreflop(weights, 600)
+#    index = 9
+#    weights = [0] * 10
+#    weights[index] = 1
+#    opCards = calculator.samplePreflop(weights, 600)
 #    print opCards
 #    print computeRangedPreFlopOdd(index, opCards)
 #    index = 9
-#    opCards = []
-#    for line in open("dat/preflopOdd.csv"):
-#        parts = line.strip().split(",")
-#        hashCode = int(parts[0])
-#        odd = float(parts[1])
-#        opCards.append((odd, hashCode))
-#    opCards.sort(reverse=True)
+    opCards = []
+    for line in open("dat/preflopOdd.csv"):
+        parts = line.strip().split(",")
+        hashCode = int(parts[0])
+        odd = float(parts[1])
+        opCards.append((odd, hashCode))
+    opCards.sort()
 #    opCards = opCards[index*221:(index+1)*221]
 #    opCards = [unhash_cards(x[1], 3) for x in opCards]
+    for i in range(100):
+        print opCards[i*221][0]
 #    print [n2c(x) for x in opCards]
 ##    start = datetime.now()
 ##    print preflopOdd(c2n(["Ah", "As", "Th"]), opCards, 1000)
