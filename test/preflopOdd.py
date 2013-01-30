@@ -180,6 +180,9 @@ if __name__ == '__main__':
         print calculator.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1], [1,1,1,1,1,1,1,1,1,1])
         print calculator.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1])
         print calculator.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1], [0,0,0,0,0,0,0,0,0,1])
+        
+        opCards = calculator.samplePreflop([0,0,0,0,0,0,0,0,0,1], 600)
+        print preflopOdd(cards, opCards)
 #        result = []
 #        for i in range(10):
 #            weights = [0] * 10
@@ -195,10 +198,10 @@ if __name__ == '__main__':
 #    #print preflopOdd(myCards, None, 400)
 
 
-#    index = 9
-#    weights = [0] * 10
-#    weights[index] = 1
-#    opCards = calculator.samplePreflop(weights, 600)
+    index = 9
+    weights = [0] * 10
+    weights[index] = 1
+    opCards = calculator.samplePreflop(weights, 600)
 #    print opCards
 #    print computeRangedPreFlopOdd(index, opCards)
 #    index = 9
