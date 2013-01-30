@@ -19,6 +19,7 @@ class Calculator:
         self.preflopRankTable = {}
         self.preflopBucket = [[] for i in range(buckets)] 
         self.rangedPreflopOddTable = {}
+        self.rangedFinePreflopOddTable = {}
         pairs = [] 
         for line in open("dat/preflopOdd.csv"):
             parts = line.strip().split(",")
@@ -35,6 +36,11 @@ class Calculator:
             hashCode = int(parts[0])
             odds = [float(x) for x in parts[1:]]
             self.rangedPreflopOddTable[hashCode] = odds
+        for line in open("dat/rangedFinePreflopOdd.csv"):
+            parts = line.strip().split(",")
+            hashCode = int(parts[0])
+            odds = [float(x) for x in parts[1:]]
+            self.rangedFinePreflopOddTable[hashCode] = odds
         self.holeCards = []
         for i in range(0,52):
             for j in range(i+1,52):
@@ -60,7 +66,7 @@ class Calculator:
         self.keptCards = None
         
     # preflop methods
-    def preflopOdd(self, cards, weights = None, replace = True):
+    def preflopOdd(self, cards, weights = None, fineWeights = None, replace = True):
         cards.sort()
         self.myInitialCards = cards
         hashCode = hash_cards(cards)
@@ -73,7 +79,15 @@ class Calculator:
                 self.preflopWeights = [x * y for x, y in zip(self.preflopWeights, weights)]
             self.preflopWeights = [1.0 * x / sum(self.preflopWeights) for x in self.preflopWeights]
             odds = self.rangedPreflopOddTable[hashCode]
-            return sum(p*q for p,q in zip(odds, self.preflopWeights))
+            if fineWeights == None:
+                return sum(p*q for p,q in zip(odds, self.preflopWeights))
+            else:
+                fineWeights = [1.0 * x / sum(fineWeights) for x in fineWeights]
+                topOdds = self.rangedFinePreflopOddTable[hashCode]
+                total = [p*q for p,q in zip(odds, self.preflopWeights)]
+                top = sum([p*q for p,q in zip(topOdds, fineWeights)])
+                total[9] = top * self.preflopWeights[9]
+                return sum(total)
 
     def preflopRank(self, cards):
         hashCode = hash_cards(cards)
