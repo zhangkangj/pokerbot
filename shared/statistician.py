@@ -60,6 +60,8 @@ class Statistician:
         self.SBStatsSorted = [[[], []], [[], []], [[], []], [[], []]]
         self.BBStats = [[[], []], [[], []], [[], []], [[], []]]
         self.BBStatsSorted = [[[], []], [[], []], [[], []], [[], []]]
+        
+        self.raiseHistSorted = None
             
     def processHand(self, oppName, button, hand):
         street = 0
@@ -86,9 +88,8 @@ class Statistician:
         oppLevels = self.fromRangeToLevels(oppRange)
         oppDist = self.fromLevelsToDist(oppLevels, numLevels = self.numLevels)
         
-        raiseHistSorted = self.getSortedArray(button, street, raiseRound)
-        if self.hasEnoughHistory(raiseHistSorted):
-            oppDist = self.smoothDist(oppDist, raiseHistSorted)
+        if self.hasEnoughHistory(self.raiseHistSorted):
+            oppDist = self.smoothDist(oppDist, self.raiseHistSorted)
         return oppDist
 
     def hasEnoughHistory(self, history):
@@ -113,10 +114,10 @@ class Statistician:
             if street != 0: #if not in pre-flop, BB always query opp's action from previous raise round
                 raiseRound = raiseRound - 1
             
-        raiseHistSorted = self.getSortedArray(button, street, raiseRound)
+        self.raiseHistSorted = self.getSortedArray(button, street, raiseRound)    
         raiseAmount = self.getRaiseAmount(oppAction)
         if raiseRound == 0:
-            if not self.hasEnoughHistory(raiseHistSorted):
+            if not self.hasEnoughHistory(self.raiseHistSorted):
                 if raiseAmount == -1:
                     self.range = prior[0]
                 elif raiseAmount == 0:
@@ -124,26 +125,26 @@ class Statistician:
                 else:
                     self.range = prior[2]                
             else:
-#                print raiseHistSorted
-                self.oppRange = self.compareNumToArray(raiseAmount, raiseHistSorted)
+#                print self.raiseHistSorted
+                self.oppRange = self.compareNumToArray(raiseAmount, self.raiseHistSorted)
         else:
-            if not self.hasEnoughHistory(raiseHistSorted):
+            if not self.hasEnoughHistory(self.raiseHistSorted):
                 raisePercentage = float(prior[2][1] - prior[2][0])
             else:
-                numAppearances = raiseHistSorted.count(raiseAmount)
+                numAppearances = self.raiseHistSorted.count(raiseAmount)
                 
                 if numAppearances == 0:
-                    numBigger = len(raiseHistSorted)-1
+                    numBigger = len(self.raiseHistSorted)-1
         
-                    for i in range(len(raiseHistSorted)):
-                        if raiseAmount > raiseHistSorted[i]:
+                    for i in range(len(self.raiseHistSorted)):
+                        if raiseAmount > self.raiseHistSorted[i]:
                             numBigger = i
                             break
                 else:
-                    numBigger = raiseHistSorted.index(raiseAmount)
+                    numBigger = self.raiseHistSorted.index(raiseAmount)
                         
-                raisePercentage = float(numBigger + numAppearances) / len(raiseHistSorted)
-#                raisePercentage = float(self.getNumPosElements(raiseHistSorted)) / len(raiseHistSorted)         
+                raisePercentage = float(numBigger + numAppearances) / len(self.raiseHistSorted)
+#                raisePercentage = float(self.getNumPosElements(self.raiseHistSorted)) / len(self.raiseHistSorted)         
             
 #            print str(oppAction) + "|" + str(street) + "|" + str(raiseRound) + "|" + str(raisePercentage)
 #            print "pre-range: " + str(self.oppRange)
@@ -214,6 +215,7 @@ class Statistician:
         return arraySorted
     
     #sortedArray is sorted from high to low
+    # don't modify sortedArray
     def compareNumToArray(self, num, sortedArray):
         numBigger = None
         numAppearances = sortedArray.count(num)
@@ -269,6 +271,7 @@ class Statistician:
                 levelArray[i] = 0
         return levelArray                          
     
+    # don't modify sortedArray
     def smoothDist(self, dist, sortedArray):
         totalWeight = float(sum(dist))
                 
