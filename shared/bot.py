@@ -102,8 +102,9 @@ class Bot(object):
                     self.lastActions.append((temp[0], temp[1], temp[2], temp[3]))
                     
             self.recentActions.extend(self.lastActions)
-            self.handOver()
-            self.stat.processHand(self.oppName, self.button, self.recentActions)                     
+            self.handOver()            
+            self.stat.getBoardCards(self.boardCards)                
+            self.stat.processHand(self.oppName, self.button, self.recentActions)
             self.initialize_hand()
             
         elif word == "KEYVALUE": #can ignore unless we are storing opp's info between games
