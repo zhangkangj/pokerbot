@@ -44,7 +44,7 @@ class Player(Bot):
         self.riverAllin = False
     
     def preflopAllinRange(self, distribution):
-        weights = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1]
+        weights = [0, 0, 0, 0, 0, 0, 0, .5, .5, 1]
         fineWeights = [1] * self.fineWeightsBucket
         temp = []
         for i in range(len(distribution)):
@@ -104,7 +104,7 @@ class Player(Bot):
                 else:
                     self.fold()
                 return
-#            print self.oppLastAction[0], self.sbAllin, self.bbAllinCall, self.bbAllinRaise
+            print self.oppLastAction[0], self.sbAllin, self.bbAllinCall, self.bbAllinRaise
             if self.button:
                 distribution = self.preflopSBAllin
             else:
@@ -167,15 +167,15 @@ class Player(Bot):
         count ,fold = 2.4, 3.0
         temp = []
         for i in range(len(distribution)):
+            if distribution[i] != None:
+                weights[distribution[i]] += i
+                temp.append(distribution[i])
+                if len(temp) > 5:
+                    temp.pop(0)
             if self.getflopBetType(self.flopAllinBetSize[i]) == betType:
                 count += 1
                 if distribution[i] == None:
                     fold += 1
-                else:
-                    weights[distribution[i]] += i
-                    temp.append(distribution[i])
-                if len(temp) > 5:
-                    temp.pop(0)
 
         for i in range(len(weights)-1):
             if weights[i] > weights[i+1]:
@@ -185,8 +185,7 @@ class Player(Bot):
             temp2 = [0] * (thres) + [1] * (10 - thres)
             weights = [a*b for a,b in zip(temp2, weights)]
         return weights, fold / count
-        
-        
+                
     def flop(self):
         cards = c2n(self.holeCards)
         cards.sort()
@@ -199,6 +198,8 @@ class Player(Bot):
                 if card not in n2c(self.cal.keptCards):
                     self.discard(card)
         else:
+            self.check()
+            return
             if self.button:
                 self.check()
             else:
@@ -331,6 +332,7 @@ class Player(Bot):
                             totalRank[0][rank] += self.preflopAllinWeights[rank] ** 1
                             if rank == 9:
                                 fineRank = (min(int(self.cal2.preflopRank(initCards) * 100), 99) - 90) / (10 / self.fineWeightsBucket)
+                                print "here", fineRank, self.cal2.preflopRank(initCards)
                                 totalRank[1][fineRank] += 1
                     s = sum(totalRank[0]) * 1.0
                     s1 = sum(totalRank[1])* 1.0
