@@ -188,10 +188,14 @@ class Player(Bot):
         
         
     def flop(self):
+        cards = c2n(self.holeCards)
+        cards.sort()
+        board = c2n(self.boardCards)
+        board.sort()
         if "DISCARD" in self.actions:
             for card in self.holeCards:
                 if self.cal.keptCards == None:
-                    self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards))
+                    self.cal.flopOdd(cards, board)
                 if card not in n2c(self.cal.keptCards):
                     self.discard(card)
         else:
@@ -200,11 +204,14 @@ class Player(Bot):
             else:
                 if self.raiseRound == 0:
                     self.check()
-                else:
+                elif self.oppLastAction[0] == "BET":
                     oppBet = self.oppLastAction[1]
-                    if self.oppLastAction[1] == 400:
-                        pass # against opp all in
-                        
+                    if not self.canRaise:  # against opp all in
+                        if self.cal.flopOdd(cards, board, [0,0,0,0,0,0,0,1,1,1]) > 0.75:
+                            self.call()
+                        else:
+                            self.fold()
+                        return
                     self.updateflopBetSize(oppBet)
                     (weights, foldRate) =  self.flopAllinRange(self.flopBBAllin, oppBet)
                     self.equity = self.cal2.flopOdd(c2n(self.holeCards), c2n(self.boardCards), weights)
@@ -212,10 +219,6 @@ class Player(Bot):
                     profit = foldRate * self.potSize + (1 - foldRate) * (self.stackSize * 2 * self.equity - (oppBet - self.potSize + self.stackSize))
                     print self.equity, profit, self.potSize, foldRate, weights
                     if profit > 0:
-                        cards = c2n(self.holeCards)
-                        cards.sort()
-                        board = c2n(self.boardCards)
-                        board.sort()
                         print "allin flop", self.cal2.flopEquityToRank(self.cal2.flopOddNaive(cards, board)[2]), self.equity, profit
                         self.flopAllin = True
                         self.flopBBAllin.append(None)
@@ -226,12 +229,57 @@ class Player(Bot):
                         self.rais(self.maxBet)
                     else:
                         self.fold()
-            
+                else:
+                    print "error in flop"
+                    self.check()
+                    
     def turn(self):
-        self.check()
+        if self.button:
+            self.check()
+        else:
+            cards = c2n(self.holeCards)
+            cards.sort()
+            board = c2n(self.boardCards)
+            board.sort()
+            if self.raiseRound == 0:
+                self.check()
+            elif self.oppLastAction[0] == "BET":
+                if not self.canRaise:  # against opp all in
+                    equity = self.cal.turnOdd(cards, board)
+                    if equity > 0.85:
+                        self.call()
+                    else:
+                        self.fold()
+                    return
+                else:
+                    if self.equity > 0.85:
+                        self.rais(self.maxBet)
+                    else:
+                        self.fold()
     
     def river(self):
-        self.check()
+        if self.button:
+            self.check()
+        else:
+            cards = c2n(self.holeCards)
+            cards.sort()
+            board = c2n(self.boardCards)
+            board.sort()
+            if self.raiseRound == 0:
+                self.check()
+            elif self.oppLastAction[0] == "BET":
+                self.equity = self.cal.riverOdd(cards, board)
+                if not self.canRaise:  # against opp all in
+                    if self.equity > 0.85:
+                        self.call()
+                    else:
+                        self.fold()
+                    return
+                else:
+                    if self.equity > 0.85:
+                        self.rais(self.maxBet)
+                    else:
+                        self.fold()
     
     def handOver(self):
         print 0.5 * sum(self.preflopAllinWin) / (len(self.preflopAllinWin)+1), 0.5 * sum(self.flopAllinWin) / (len(self.flopAllinWin)+1), 0.5 * sum(self.turnAllinWin) / (len(self.turnAllinWin)+1), 0.5 * sum(self.riverAllinWin) / (len(self.riverAllinWin)+1)
