@@ -42,6 +42,7 @@ class Bot(object):
         self.minBet = None
         self.maxBet = None
         self.raiseRound = 0
+        self.canRaise = False
         
     def __init__(self):                
         self.initialize_match()    
@@ -139,12 +140,15 @@ class Bot(object):
             numLegalActions = int(parts[offset])
             actionsString = parts[1+offset:1+offset+numLegalActions]
             self.actions = []
+            self.canRaise = False
             for actionString in actionsString:
                 temp = actionString.split(":")
                 self.actions.append(temp[0])
                 if temp[0] == "RAISE" or temp[0] == "BET":
                     self.minBet = int(temp[1])
                     self.maxBet = int(temp[2])
+                if temp[0] == "RAISE":
+                    self.canRaise = True
             self.time = float(parts[1+offset+numLegalActions]) 
                 
             if self.numBoardCards == 0: #preflop
