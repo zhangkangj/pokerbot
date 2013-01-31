@@ -110,8 +110,12 @@ class Player(Bot):
             foldRate = self.getFoldRate(distribution, self.button)
             self.equity = self.cal2.preflopOdd(c2n(self.holeCards), weights, fineWeights)
             self.cal2.reset()
+            if self.button:
+                cost = self.stackSize - 1
+            else:
+                cost = self.stackSize - 2
             try:
-                profit = foldRate * self.potSize + (1 - foldRate) * (self.stackSize * 2 * self.equity - self.maxBet)
+                profit = foldRate * self.potSize + (1 - foldRate) * (self.stackSize * 2 * self.equity - cost)
             except:
                 print "error!!", self.potSize, foldRate,self.stackSize, self.equity, self.maxBet
                 profit = -100
