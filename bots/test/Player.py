@@ -25,14 +25,15 @@ class Player(Bot):
             myCards = c2n(self.holeCards)
             myCards.sort()
             rank = self.cal.preflopRank(myCards)
-            if rank < 0.02:
-                self.fold()
+            if rank < 0.0:
+                self.call()
             else:
                 self.rais(7)
             self.preflopWeights = self.preflopWeights1
         elif self.oppLastAction[0] == "CALL":
             self.preflopWeights = self.preflopWeights1
-            self.rais(7)
+#            self.rais(7)
+            self.call()
         elif self.oppLastAction[0] == "RAISE":
             minBet = self.oppLastAction[1] * 2 - self.potSize
             if self.oppLastAction[1] * 2 - self.potSize > 100:
@@ -40,12 +41,12 @@ class Player(Bot):
             else:
                 self.preflopWeights = self.preflopWeights3
             self.equity = self.cal.preflopOdd(c2n(self.holeCards), self.preflopWeights)
-            if self.equity > 0.5:
+            if self.equity > 0.6:
                 if self.minBet == None or self.maxBet == None:
                     self.call()
                 else:
                     self.rais(max(self.minBet, min(self.maxBet, self.oppLastAction[1])))
-            elif self.equity > 1.0 * minBet / (self.potSize + minBet):
+            elif self.equity > 0.6 and self.equity > 1.0 * minBet / (self.potSize + minBet):
                 self.call()
             else:
                 self.fold()
@@ -120,6 +121,8 @@ class Player(Bot):
                 print "error in flop"
     
     def turn(self):
+        self.call()
+        return
         if len(self.boardCards) == 4:
             self.equity = self.cal.turnOdd(c2n(self.holeCards), c2n(self.boardCards))
         else:

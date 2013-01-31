@@ -114,11 +114,7 @@ class Player(Bot):
                 cost = self.stackSize - 1
             else:
                 cost = self.stackSize - 2
-            try:
-                profit = foldRate * self.potSize + (1 - foldRate) * (self.stackSize * 2 * self.equity - cost)
-            except:
-                print "error!!", self.potSize, foldRate,self.stackSize, self.equity, self.maxBet
-                profit = -100
+            profit = foldRate * self.potSize + (1 - foldRate) * (self.stackSize * 2 * self.equity - cost)
             print self.equity, profit, self.potSize, foldRate, weights, fineWeights
             if profit > 0:
                 if self.button:
