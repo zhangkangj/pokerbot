@@ -26,16 +26,31 @@ class rangeEquity(Bot):
     def __init__(self):
         super(rangeEquity, self).__init__()
         self.equity = None
+        self.preflopEquThreshold = None
+        
 #        self.numPreflopRaises = 0
         
         #requested by Mark for post flop
 #        self.isPreflopAggressor = None
+      
+    def equFactorToThreshold1(self, equFactor):
+        return equFactor  
+    
+    def getPreflopRaiseRatios(self, equFactor):
+        if equFactor == 0:
+            return [self.equity, self.equity]
+        return [self.equity + 1/equFactor, self.equity + 2/equFactor] # the higher equFactor is, the easier to scare opp away                        
                   
-#    def prepareNewHand(self):
-#        self.equity = self.cal.preflopOdd(
-#            [util.card_to_number(card) for card in self.holeCards])
-##        self.numPreflopRaises = 0
-##        self.isPreflopAggressor = None
+    def prepareNewHand(self):
+        self.equity = self.cal.preflopOdd(util.c2n(self.holeCards))
+        oppShowdownRate = self.stat.getOppShowdownRate()
+        oppShowdownWinRate = self.stat.getOppShowdownWinRate()
+        print oppShowdownWinRate, oppShowdownRate
+        oppEquFactor = oppShowdownWinRate / (oppShowdownWinRate + oppShowdownRate)
+        self.preflopEquThreshold = self.equFactorToThreshold1(oppEquFactor)
+        print "preflop equ threshold: " + str(self.preflopEquThreshold)
+        self.preflopRaiseRatios = self.getPreflopRaiseRatios(oppEquFactor)
+        print "preflop raise ratios: " + str(self.preflopRaiseRatios)
 
 # old preflop strategy where it is possible to go beyond one raise round
 #    def preflop(self):
@@ -50,7 +65,7 @@ class rangeEquity(Bot):
 #            else:
 #                if self.raiseRound == 0: #opp raises
 #                    oppRaiseAmount = self.oppLastAction[1]
-#                    potOdd = self.calPotOdd(secRaiseRatio, oppRaiseAmount)
+#                    potOdd = self.calPotOdd(oppRaiseAmount)
 #                    
 #                    oppRange = self.stat.getPreflopRange(self.button, self.raiseRound, self.oppLastAction)
 ##                    print oppRange
@@ -62,7 +77,7 @@ class rangeEquity(Bot):
 #                        self.preflopRaise(secRaiseRatio*oppRaiseAmount)
 #                else: #opp 3-raisedhttp://www.xvideos.com/video324539/nnanna-11
 #                    oppRaiseAmount = self.oppLastAction[1]
-#                    potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+#                    potOdd = self.calPotOdd(oppRaiseAmount)
 #                    self.equity = self.getPreflopRangedOdd(self.raiseRound)
 #                    if potOdd >= self.equity:
 #                        self.fold()
@@ -70,8 +85,7 @@ class rangeEquity(Bot):
 #                        self.preflopCall()
                                     
     def preflop(self):
-        print self.stat.getOppShowdownRate(), self.stat.getOppShowdownWinRate()
-        print "my folding rate: " + str(self.stat.getMyFoldingRate()) + "; opp folding rate: " + str(self.stat.getOppFoldingRate())
+#        print "my folding rate: " + str(self.stat.getMyFoldingRate()) + "; opp folding rate: " + str(self.stat.getOppFoldingRate())
         if self.position:
             self.SBPreflop()
         else:
@@ -80,7 +94,7 @@ class rangeEquity(Bot):
                 self.SBPreflop()
             else: #opp raises
                 oppRaiseAmount = self.oppLastAction[1]
-                potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+                potOdd = self.calPotOdd(oppRaiseAmount)
                 
                 self.equity = self.getPreflopRangedOdd()
                 if potOdd > self.equity:
@@ -108,7 +122,7 @@ class rangeEquity(Bot):
                     self.BBFlop()
                 else: #opp raises
                     oppRaiseAmount = self.oppLastAction[1]
-                    potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+                    potOdd = self.calPotOdd(oppRaiseAmount)
                     
                     oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 1, self.raiseRound)
                     print " Flop, SB, opp raises in round 0: " + str(oppRange)
@@ -188,7 +202,7 @@ class rangeEquity(Bot):
 #                self.BBTurn()
 #            else: #opp raises
 #                oppRaiseAmount = self.oppLastAction[1]
-#                potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+#                potOdd = self.calPotOdd(oppRaiseAmount)
 #                
 ##                    oppRange = self.stat.getPreflopRange(self.button, self.raiseRound, self.oppLastAction)
 ##                        print oppRange
@@ -210,7 +224,7 @@ class rangeEquity(Bot):
 #                self.BBRiver()
 #            else: #opp raises
 #                oppRaiseAmount = self.oppLastAction[1]
-#                potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+#                potOdd = self.calPotOdd(oppRaiseAmount)
 #                
 ##                    oppRange = self.stat.getPreflopRange(self.button, self.raiseRound, self.oppLastAction)
 ##                        print oppRange
@@ -243,7 +257,7 @@ class rangeEquity(Bot):
 #                self.preflopRaise(secRaiseRatio*oppRaiseAmount) #our 3-raise
 #        else: #call or fold if opp has 4-raised
 #            oppRaiseAmount = self.oppLastAction[1]
-#            potOdd = self.calPotOdd(1.0, oppRaiseAmount)            
+#            potOdd = self.calPotOdd(oppRaiseAmount)            
 #            if potOdd >= self.equity:
 #                self.fold()
 #            else:
@@ -254,13 +268,13 @@ class rangeEquity(Bot):
 #            if not self.button:
 #                oppRange = self.stat.getStreetRange(self.button, self.oppLastAction, 0, self.raiseRound)
 #                print "Preflop, BB, opp calls in round 0: " + str(oppRange)
-                
-            self.equity = self.getPreflopRangedOdd()
+            if not self.button:
+                self.equity = self.getPreflopRangedOdd()
             
-            if self.equity < preflopEqThresh:
+            if self.equity < self.preflopEquThreshold:
                 self.fold()
             else:
-                raiseRatio = random.uniform(preflopRaiseRatio[0], preflopRaiseRatio[1])
+                raiseRatio = round(random.uniform(self.preflopRaiseRatios[0], self.preflopRaiseRatios[1]))
                 self.rais(raiseRatio*self.bb)
         elif self.raiseRound == 1: #opp has reraised
 #            if self.button:
@@ -271,7 +285,7 @@ class rangeEquity(Bot):
 #                print "Preflop, BB, opp reraises in round 1: " + str(oppRange)                           
             
             oppRaiseAmount = self.oppLastAction[1]
-            potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+            potOdd = self.calPotOdd(oppRaiseAmount)
             self.equity = self.getPreflopRangedOdd()
                             
             if potOdd > self.equity:
@@ -290,7 +304,7 @@ class rangeEquity(Bot):
             if self.equity < flopEqThresh:
                 self.check()
             else:
-                raiseRatio = random.uniform(flopRaiseRatio[0], flopRaiseRatio[1])
+                raiseRatio = round(random.uniform(flopRaiseRatio[0], flopRaiseRatio[1]))
                 self.rais(raiseRatio*self.bb)
         elif self.raiseRound == 1: #opp has reraised
 #            if self.button:
@@ -301,7 +315,7 @@ class rangeEquity(Bot):
 #                print " Flop, BB, opp reraises in round 0: " + str(oppRange)                                           
                 
             oppRaiseAmount = self.oppLastAction[1]
-            potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+            potOdd = self.calPotOdd(oppRaiseAmount)
             self.equity = self.getFlopRangedOdd()
                             
             if potOdd > self.equity:
@@ -316,11 +330,11 @@ class rangeEquity(Bot):
             if self.equity < oppShowdownEqu:
                 self.check()
             else:
-                raiseRatio = random.uniform(turnRaiseRatio[0], turnRaiseRatio[1])
+                raiseRatio = round(random.uniform(turnRaiseRatio[0], turnRaiseRatio[1]))
                 self.rais(raiseRatio*self.bb)
         elif self.raiseRound == 1: #opp has reraised
             oppRaiseAmount = self.oppLastAction[1]
-            potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+            potOdd = self.calPotOdd(oppRaiseAmount)
                             
             if potOdd > self.equity:
                 self.fold()
@@ -334,11 +348,11 @@ class rangeEquity(Bot):
             if self.equity < oppShowdownEqu:
                 self.check()
             else:
-                raiseRatio = random.uniform(riverRaiseRatio[0], riverRaiseRatio[1])
+                raiseRatio = round(random.uniform(riverRaiseRatio[0], riverRaiseRatio[1]))
                 self.rais(raiseRatio*self.bb)
         elif self.raiseRound == 1: #opp has reraised
             oppRaiseAmount = self.oppLastAction[1]
-            potOdd = self.calPotOdd(1.0, oppRaiseAmount)
+            potOdd = self.calPotOdd(oppRaiseAmount)
                             
             if potOdd > self.equity:
                 self.fold()
@@ -346,12 +360,9 @@ class rangeEquity(Bot):
                 self.call()
     
     def getPreflopRangedOdd(self):
-        if self.oppLastAction[0] == 'POST': #if we are SB and opp has not acted
-            return self.cal.preflopOdd(util.c2n(self.holeCards))
-        else:
-            oppDist = self.stat.getOppDist(self.button, self.oppLastAction, 0, self.raiseRound)
+        oppDist = self.stat.getOppDist(self.button, self.oppLastAction, 0, self.raiseRound)
 #            print oppDist              
-            return self.cal.preflopOdd(util.c2n(self.holeCards), weights = oppDist)
+        return self.cal.preflopOdd(util.c2n(self.holeCards), weights = oppDist)
 
     def getFlopRangedOdd(self):
         if (not self.button) and self.raiseRound == 0: #if we are BB and opp has not acted yet
@@ -384,12 +395,11 @@ class rangeEquity(Bot):
 #            print oppDist
             return self.cal.riverOdd(util.c2n(self.holeCards), util.c2n(self.boardCards), riverWeights = oppDist)
                 
-    #myRaiseRatio >= 1.0
-    def calPotOdd(self, myRaiseRatio, oppRaiseAmount):
-        myPot = self.potSize - oppRaiseAmount
-        myRaiseAmount = myRaiseRatio*oppRaiseAmount
-        delta = myRaiseAmount - myPot
-        return float(delta)/(myRaiseAmount + oppRaiseAmount)
+    def calPotOdd(self, oppRaiseAmount):
+#        print "pot size: " + str(self.potSize)
+#        print "current street bet size: " + str(self.curStreetBet)
+        delta = oppRaiseAmount - self.curStreetBet
+        return float(delta)/(self.potSize + delta)
     
 #    def preflopRaise(self, raiseAmount):
 #        self.rais(raiseAmount)
