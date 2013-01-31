@@ -4,7 +4,8 @@ Created on Jan 21, 2013
 @author: jhwan
 
 '''
-import math
+from calculator import Calculator
+from shared.pbots_calc import calc
 
 #fixed prior distributions
 SBPreflop = [
@@ -45,10 +46,12 @@ BBPriors = [BBPreflop, BBFlop, BBTurn, BBRiver]
 
 class Statistician:
     def __init__(self):
+        self.cal = Calculator()
         self.numLevels = 10
         self.initWindowSize = 30
         # window size is always between 300 and 1000
         self.windowSize = 100
+        self.boardCards = []
         self.oppRange = [0, 1]
         
         self.SBStats = [
@@ -61,11 +64,22 @@ class Statistician:
         self.BBStats = [[[], []], [[], []], [[], []], [[], []]]
         self.BBStatsSorted = [[[], []], [[], []], [[], []], [[], []]]
         
+        self.oppShowdownPreflopEqu = []
+        self.oppShowdownTurnEqu = []
+        self.oppShowdownRiverEqu = []
+        self.oppShowdowns = []
+        self.oppShowdownWins = []
+        self.myFolds = []
+        self.oppFolds = []
+        
         self.raiseHistSorted = None
             
-    def processHand(self, oppName, button, hand):
+    def processHand(self, oppName, myName, button, hand):
         street = 0
         raiseRound = 0
+        showdown = False
+        folding = False
+        oppFolding = False
         
         for i in range(2, len(hand)): #skipping the first two POST actions
             action = hand[i]
@@ -73,12 +87,32 @@ class Statistician:
             if action[0] == "DEAL": #start of next street
                 street += 1
                 raiseRound = 0
-            elif action[0] in ["SHOW", "REFUND", "WIN"]: #the end of the hand
-                self.processEnd(button)
-                break
+            elif action[-1] == myName and action[0] == "FOLD":
+                folding = True
             elif action[-1] == oppName:
-                self.processStreetAction(button, action, street, raiseRound)            
-                raiseRound += 1
+                if action[0] == "SHOW":
+                    showdown = True
+                    self.processShowdown([action[1], action[2]], hand[-1], oppName)
+                elif action[0] == "FOLD":
+                    oppFolding = True
+                else:
+                    self.processStreetAction(button, action, street, raiseRound)            
+                    raiseRound += 1
+                    
+        if showdown:
+            self.addNewEntry(self.oppShowdowns, True)
+        else:
+            self.addNewEntry(self.oppShowdowns, False)
+            
+        if folding:
+            self.addNewEntry(self.myFolds, True)
+        else:
+            self.addNewEntry(self.myFolds, False)
+            
+        if oppFolding:
+            self.addNewEntry(self.oppFolds, True)
+        else:
+            self.addNewEntry(self.oppFolds, False)
                 
     def getOppDist(self, button, oppAction, street, raiseRound):
         if raiseRound > 1:
@@ -94,6 +128,47 @@ class Statistician:
             oppDist = self.smoothDist(oppDist)
             
         return oppDist
+
+    def getOppShowdownEqu(self, street):
+        if street == "PREFLOP":
+            if self.oppShowdownPreflopEqu == []:
+                return 0.5
+            return float(sum(self.oppShowdownPreflopEqu))/len(self.oppShowdownPreflopEqu)
+        elif street == "TURN":
+            if self.oppShowdownTurnEqu == []:
+                return 0.5
+            return float(sum(self.oppShowdownTurnEqu))/len(self.oppShowdownTurnEqu)
+        elif street == "RIVER":
+            if self.oppShowdownRiverEqu == []:
+                return 0.5            
+            return float(sum(self.oppShowdownRiverEqu))/len(self.oppShowdownRiverEqu)
+            
+    def getOppShowdownRate(self):
+        if self.oppShowdowns == []:
+            return 1
+        
+        return float(sum(self.oppShowdowns)) / len(self.oppShowdowns)
+
+    def getOppShowdownWinRate(self):
+        if self.oppShowdownWins == []:
+            return 0
+        
+        return float(sum(self.oppShowdownWins)) / len(self.oppShowdownWins)
+    
+    def getMyFoldingRate(self):
+        if self.myFolds == []:
+            return None
+        
+        return float(sum(self.myFolds)) / len(self.myFolds)
+
+    def getOppFoldingRate(self):
+        if self.oppFolds == []:
+            return None
+        
+        return float(sum(self.oppFolds)) / len(self.oppFolds)
+
+    def getBoardCards(self, boardCards):
+        self.boardCards = boardCards
 
     def hasEnoughHistory(self, history):
         if len(history) < self.initWindowSize:
@@ -165,18 +240,33 @@ class Statistician:
             raiseHist = self.SBStats[street][raiseRound]
         else:
             raiseHist = self.BBStats[street][raiseRound]
-        
-        raiseHist.append(raiseAmount)
-        if len(raiseHist) > self.windowSize:
-            raiseHist.pop(0)
+            
+        self.addNewEntry(raiseHist, raiseAmount)
         
         if button:
             self.SBStatsSorted[street][raiseRound] = self.reverseSortArray(raiseHist)
         else:
             self.BBStatsSorted[street][raiseRound] = self.reverseSortArray(raiseHist)
             
-    def processEnd(self, button):
-        pass
+    def processShowdown(self, oppHoleCards, result, oppName):
+        if result[-1] == oppName:
+            self.addNewEntry(self.oppShowdownWins, True)
+        else:
+            self.addNewEntry(self.oppShowdownWins, False)
+                
+        turnBoard = self.boardCards[0:4]
+        oppTurnEqu = calc("".join(oppHoleCards) + ":xx", "".join(turnBoard), "", 3000).ev[0]   
+        self.addNewEntry(self.oppShowdownTurnEqu, oppTurnEqu)     
+            
+        riverBoard = self.boardCards
+        oppRiverEqu = calc("".join(oppHoleCards) + ":xx", "".join(riverBoard), "", 3000).ev[0]         
+        self.addNewEntry(self.oppShowdownRiverEqu, oppRiverEqu)             
+    
+    def addNewEntry(self, history, newEntry):
+        history.append(newEntry)
+        if len(history) > self.windowSize:
+            history.pop(0)
+        
     
     # ranging sub-methods    
                             
