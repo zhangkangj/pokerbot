@@ -40,16 +40,30 @@ class Calculator:
             hashCode = int(parts[0])
             odds = [float(x) for x in parts[1:]]
             self.rangedPreflopOddTable[hashCode] = odds
-        for line in open("dat/rangedFinePreflopOdd.csv"):
+        for line in open("dat/rangedFinePreflopOdd0.csv"):
             parts = line.strip().split(",")
             hashCode = int(parts[0])
             odds = [float(x) for x in parts[1:]]
             self.rangedFinePreflopOddTable[hashCode] = odds
+        for line in open("dat/cardCounts0.csv"):
+            parts = line.strip().split(",")
+            hashCode = int(parts[0])
+            cardCount = [int(x) for x in parts[1:]]
+            self.cardCounts[hashCode] = cardCount
+#        out = open("dat/cardCounts0.csv", "w")
         for i in range(0,52):
             for j in range(i+1,52):
                 for k in range(j+1,52):
                     self.holeCards.append((i,j,k))
-                    hashCode = (i * 52 + j) * 52 + k
+#                    hashCode = hash_cards((i,j,k))
+#                    cardCount = [0, 0, 0, 0, 0]
+#                    for index, opCards in enumerate(self.topCards):
+#                        if i in opCards or j in opCards or k in opCards:
+#                            continue
+#                        cardCount[index/442]+=1
+#                    self.cardCounts[hashCode] = cardCount
+#                    out.write(str(hashCode) + "," + ",".join(map(str, cardCount)) + "\n")
+#                    out.flush()
         self.reset()
     
     def reset(self):
@@ -86,12 +100,14 @@ class Calculator:
             if fineWeights == None:
                 return sum(p*q for p,q in zip(odds, self.preflopWeights))
             else:
-                cardCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                for i, opCards in enumerate(self.topCards):
-                    if cards[0] in opCards or cards[1] in opCards or cards[2] in opCards:
-                        continue
-                    cardCounts[i/221]+=1
-                fineWeights = [p*q for p,q, in zip(fineWeights, cardCounts)]
+#                cardCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+#                for i, opCards in enumerate(self.topCards):
+#                    if cards[0] in opCards or cards[1] in opCards or cards[2] in opCards:
+#                        continue
+#                    cardCounts[i/442]+=1
+#                print cardCounts
+                cardCount = self.cardCounts[hashCode]
+                fineWeights = [p*q for p,q, in zip(fineWeights, cardCount)]
                 fineWeights = [1.0 * x / sum(fineWeights) for x in fineWeights]
                 topOdds = self.rangedFinePreflopOddTable[hashCode]
                 top = sum([p*q for p,q in zip(topOdds, fineWeights)])
@@ -153,10 +169,6 @@ class Calculator:
                         odds[i] = round(odds[i])
                     totalProb += odds[i] * distribution[i]
                     totalWeight += distribution[i]
-            if totalWeight == 0:
-                print "compute odd", totalWeight                
-                print distribution
-                print self.flopDist
             return totalProb / totalWeight, odds
         else:
             for (c1,c2) in opCards:
@@ -381,9 +393,9 @@ if __name__ == '__main__':
     from datetime import datetime
     
     cal = Calculator()
-    cards = ["As","Ah","Th"]
+    cards = ["Ac","Ah","Tc"]
     print cards
-    print cal.preflopOdd(c2n(cards), [0,0,0,0,0,0,0,0,0,1], [1,1,1,1,1,1,1,1,1,1])
+    print cal.preflopOdd(c2n(cards), [0,0,0,0,0,0,0,0,0,1], [1,1,1,1,1])
 #    cards = draw_cards(8, True)
 ##    cards = c2n(["7h", "Tc", "4s", "6h", "8d", "Js", "8s", "3s"])
 #    print cards, n2c(cards[0:3])

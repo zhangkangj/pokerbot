@@ -9,9 +9,11 @@ from shared.calculator import Calculator
 class Player(Bot):
     def __init__(self):
         Bot.__init__(self)
+        self.fineWeightsBucket = 5
+        
         self.cal2 = Calculator()
         self.prepareNewHand()
-        self.window = 250
+        self.window = 200
         self.preflopSBAllin = []
         self.preflopBBAllinCall = []
         self.preflopBBAllinRaise = []
@@ -23,6 +25,9 @@ class Player(Bot):
         self.flopSBAllin = []
         self.flopBBAllin = []
         self.flopAllinWin = []
+        self.flopBetSize = []
+        self.flopAllinBetSize = []
+        
         self.turnSBAllin = []
         self.turnBBAllin = []
         self.turnAllinWin = []        
@@ -40,7 +45,7 @@ class Player(Bot):
     
     def preflopAllinRange(self, distribution):
         weights = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1]
-        fineWeights = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        fineWeights = [1] * self.fineWeightsBucket
         temp = []
         for i in range(len(distribution)):
             subdist = distribution[i]
@@ -51,7 +56,7 @@ class Player(Bot):
                 if len(temp) > 5:
                     temp.pop(0)
                 if subdist[0][9] != 0:
-                    for j in range(10):
+                    for j in range(self.fineWeightsBucket):
                         fineWeights[j] += subdist[1][j] * subdist[0][9] * i
         for i in range(len(weights)-1):
             if weights[i] > weights[i+1]:
@@ -78,9 +83,6 @@ class Player(Bot):
                 fold += 1
         return fold / (len(distribution) + 3)
     
-    def getPreflopBetType(self, betSize):
-        pass
-        
 #    def updatePreflopOppBetSize(self):
 #        if self.oppLastAction[0] == "CALL":
 #            betSize = 2
@@ -95,7 +97,14 @@ class Player(Bot):
 
     def preflop(self):
         if self.raiseRound == 0:
-            print self.oppLastAction[0], self.sbAllin, self.bbAllinCall, self.bbAllinRaise
+            #against all in
+            if self.oppLastAction[0] == "RAISE" and self.oppLastAction[1] == 400:
+                if self.cal.preflopRank(c2n(self.holeCards)) > 0.9:
+                    self.call()
+                else:
+                    self.fold()
+                return
+#            print self.oppLastAction[0], self.sbAllin, self.bbAllinCall, self.bbAllinRaise
             if self.button:
                 distribution = self.preflopSBAllin
             else:
@@ -124,27 +133,60 @@ class Player(Bot):
                         self.bbAllinCall += 1
                     else:
                         self.bbAllinRaise += 1
-                print "raised", self.cal2.preflopRank(c2n(self.holeCards)), self.equity, profit
+                print "allin preflop", self.cal2.preflopRank(c2n(self.holeCards)), self.equity, profit
                 distribution.append(None)
-#                self.cal.preflopWeights = weights
-#                if self.oppLastAction[0] == "POST":
-#                    distribution.append(None)
-#                elif self.oppLastAction[0] == "CALL":
-#                    distribution.append([self.bb, None])
-#                elif self.oppLastAction[0] == "RAISE":
-#                    distribution.append([self.oppLastAction[1], None])
-#                else:
-#                    print "opp action error"
                 if len(distribution) > self.window:
                     distribution.pop()
                 self.preflopAllin = True
                 self.rais(self.maxBet)
-                return
             else:
                 self.check()
         else:
             self.check()
+    
+    def getflopBetType(self, amount):
+        bigger = smaller = 0
+        for element in self.flopBetSize:
+            if amount > element:
+                bigger += 1
+            elif amount < element:
+                smaller +=1
+        if bigger > smaller:
+            return "BIG"
+        else:
+            return "SMALL"
+            
+    def updateflopBetSize(self, amount):
+        self.flopBetSize.append(amount)
+        if len(self.flopBetSize) > self.window:
+            self.flopBetSize.pop(0)
                 
+    def flopAllinRange(self, distribution, amount):
+        weights = [0,0,0,0,0,0,0,1,1,1]
+        betType = self.getflopBetType(amount)
+        count ,fold = 2.4, 3.0
+        temp = []
+        for i in range(len(distribution)):
+            if self.getflopBetType(self.flopAllinBetSize[i]) == betType:
+                count += 1
+                if distribution[i] == None:
+                    fold += 1
+                else:
+                    weights[distribution[i]] += i
+                    temp.append(distribution[i])
+                if len(temp) > 5:
+                    temp.pop(0)
+
+        for i in range(len(weights)-1):
+            if weights[i] > weights[i+1]:
+                weights[i+1] = weights[i]
+        if len(temp) == 5:
+            thres = min(temp)
+            temp2 = [0] * (thres) + [1] * (10 - thres)
+            weights = [a*b for a,b in zip(temp2, weights)]
+        return weights, fold / count
+        
+        
     def flop(self):
         if "DISCARD" in self.actions:
             for card in self.holeCards:
@@ -153,7 +195,37 @@ class Player(Bot):
                 if card not in n2c(self.cal.keptCards):
                     self.discard(card)
         else:
-            self.check()
+            if self.button:
+                self.check()
+            else:
+                if self.raiseRound == 0:
+                    self.check()
+                else:
+                    oppBet = self.oppLastAction[1]
+                    if self.oppLastAction[1] == 400:
+                        pass # against opp all in
+                        
+                    self.updateflopBetSize(oppBet)
+                    (weights, foldRate) =  self.flopAllinRange(self.flopBBAllin, oppBet)
+                    self.equity = self.cal2.flopOdd(c2n(self.holeCards), c2n(self.boardCards), weights)
+                    self.cal2.reset()
+                    profit = foldRate * self.potSize + (1 - foldRate) * (self.stackSize * 2 * self.equity - (oppBet - self.potSize + self.stackSize))
+                    print self.equity, profit, self.potSize, foldRate, weights
+                    if profit > 0:
+                        cards = c2n(self.holeCards)
+                        cards.sort()
+                        board = c2n(self.boardCards)
+                        board.sort()
+                        print "allin flop", self.cal2.flopEquityToRank(self.cal2.flopOddNaive(cards, board)[2]), self.equity, profit
+                        self.flopAllin = True
+                        self.flopBBAllin.append(None)
+                        self.flopAllinBetSize.append(oppBet)
+                        if len(self.flopBBAllin) > self.window:
+                            self.flopBBAllin.pop(0)
+                            self.flopAllinBetSize.pop(0)                        
+                        self.rais(self.maxBet)
+                    else:
+                        self.fold()
             
     def turn(self):
         self.check()
@@ -199,7 +271,7 @@ class Player(Bot):
                 board.sort()
                 myCards = c2n(self.holeCards)
                 if self.preflopAllin:
-                    totalRank = ([0.0] * 10, [0.0] * 10)
+                    totalRank = ([0.0] * 10, [0.0] * self.fineWeightsBucket)
                     for i in range(52):
                         if i in board or i in myCards or i == o1 or i == o2:
                             continue
@@ -210,7 +282,7 @@ class Player(Bot):
                             rank = min(int(self.cal2.preflopRank(initCards) * 10), 9)
                             totalRank[0][rank] += self.preflopAllinWeights[rank] ** 1
                             if rank == 9:
-                                fineRank = min(int(self.cal2.preflopRank(initCards) * 100), 99) % 10
+                                fineRank = (min(int(self.cal2.preflopRank(initCards) * 100), 99) - 90) / (10 / self.fineWeightsBucket)
                                 totalRank[1][fineRank] += 1
                     s = sum(totalRank[0]) * 1.0
                     s1 = sum(totalRank[1])* 1.0
@@ -218,7 +290,7 @@ class Player(Bot):
                         for i in range(10):
                             totalRank[0][i] = totalRank[0][i]/s 
                         if s1 != 0:
-                            for i in range(10):
+                            for i in range(len(totalRank[1])):
                                 totalRank[1][i] = totalRank[1][i]/s1
                         if self.button:
                             self.preflopSBAllin[-1] = totalRank
