@@ -42,6 +42,7 @@ class Bot(object):
         self.minBet = None
         self.maxBet = None
         self.raiseRound = 0
+        self.curStreetBet = 0
         self.canRaise = False
         
     def __init__(self):                
@@ -77,8 +78,10 @@ class Bot(object):
             self.handID = int(parts[1])
             if parts[2] == "false":
                 self.button = False
+                self.curStreetBet = 2
             else:
                 self.button = True
+                self.curStreetBet = 1
             self.position = self.button
             self.holeCards = [parts[3], parts[4], parts[5]]
             self.time = float(parts[8])
@@ -126,6 +129,7 @@ class Bot(object):
                     self.lastActions.append((temp[0], temp[1]))
                     if temp[0] == "DEAL": #the start of each new street resets raiseRound and position
                         self.raiseRound = 0
+                        self.curStreetBet = 0
                         self.position = (not self.button)
                     if temp[1] == self.oppName:
                         self.oppLastAction = [temp[0]]
@@ -195,6 +199,7 @@ class Bot(object):
         if "CHECK" in self.actions:
             self.check()
         else:
+            self.curStreetBet = int(self.oppLastAction[1])
             self.myLastAction = ["CALL"]
             self.sendMessage("CALL")
     
@@ -202,6 +207,7 @@ class Bot(object):
         amount = min(self.maxBet, max(self.minBet, amount))
         
         if "RAISE" in self.actions:
+            self.curStreetBet = amount            
             self.myLastAction = ["RAISE", amount]
             self.sendMessage("RAISE:" + str(amount))
         elif "BET" in self.actions:
@@ -211,6 +217,7 @@ class Bot(object):
     
     def bet(self, amount):
         #print "betting:"+str(amount)
+        self.curStreetBet = amount        
         self.myLastAction = ["BET", amount]
         self.sendMessage("BET:" + str(amount))
     
