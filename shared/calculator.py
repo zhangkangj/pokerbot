@@ -90,6 +90,7 @@ class Calculator:
                 return sum(total)
 
     def preflopRank(self, cards):
+        cards.sort()
         hashCode = hash_cards(cards)
         return self.preflopRankTable[hashCode]
                     
