@@ -3,6 +3,7 @@ import socket
 
 from shared.bot import Bot
 from shared.util import c2n, n2c
+from random import random
 
 class Player(Bot):
     def __init__(self):
@@ -25,7 +26,7 @@ class Player(Bot):
             myCards = c2n(self.holeCards)
             myCards.sort()
             rank = self.cal.preflopRank(myCards)
-            if rank < 0.0:
+            if rank * random() < 0.25:
                 self.call()
             else:
                 self.rais(7)
@@ -68,12 +69,15 @@ class Player(Bot):
                     if self.oppLastAction[0] == "CHECK":
                         self.flopWeights = self.flopWeights1
                         self.equity = self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards), self.flopWeights)
-                        if self.equity < 0.5:
+                        if self.equity * random() < 0.25:
                             betAmount = self.minBet
-                        if self.equity > 0.8:
-                            betAmount = max(min(self.potSize, self.maxBet), self.minBet)
+                        elif self.equity < 0.5:
+                            self.call()
+                            return
+                        elif self.equity > 0.7:
+                            betAmount = max(min(20, self.maxBet), self.minBet)
                         else:
-                            betAmount = max(min(self.potSize / 2, self.maxBet), self.minBet)
+                            betAmount = max(min(10, self.maxBet), self.minBet)
                         self.bet(betAmount)                      
                     else:
                         if  self.oppLastAction[1] * 2 - self.potSize > 100:
@@ -82,13 +86,13 @@ class Player(Bot):
                             self.flopWeights = self.flopWeights3
                         minBet = self.oppLastAction[1] * 2 - self.potSize
                         self.equity = self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards),self.flopWeights)
-                        if self.equity > 0.5:
+                        if self.equity > 0.7:
                             if self.minBet == None or self.maxBet == None:
                                 self.call()
                             else:
                                 raiseAmount = max(self.minBet, min(self.maxBet, self.oppLastAction[1]))
                                 self.rais(raiseAmount)
-                        elif self.equity > 1.0 * minBet / (self.potSize + minBet):
+                        elif self.equity > 0.7 and self.equity > 1.0 * minBet / (self.potSize + minBet):
                             self.call()
                         else:
                             self.fold()                        
@@ -108,12 +112,12 @@ class Player(Bot):
                     self.flopWeights = self.flopWeights5
                 minBet = self.oppLastAction[1] * 2 - self.potSize
                 self.equity = self.cal.flopOdd(c2n(self.holeCards), c2n(self.boardCards), self.flopWeights)
-                if self.equity > 0.5:
+                if self.equity > 0.7:
                     if self.minBet == None or self.maxBet == None:
                         self.call()
                     else:
                         self.rais(min(self.maxBet, self.oppLastAction[1]))
-                elif self.equity > 1.0 * minBet / (self.potSize + minBet):
+                elif self.equity > 0.7 and self.equity > 1.0 * minBet / (self.potSize + minBet):
                     self.call()
                 else:
                     self.fold()

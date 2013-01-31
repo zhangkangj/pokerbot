@@ -10,6 +10,7 @@ class Player(Bot):
     def __init__(self):
         Bot.__init__(self)
         self.fineWeightsBucket = 5
+        self.transitionThres = 3
         
         self.cal2 = Calculator()
         self.prepareNewHand()
@@ -97,8 +98,7 @@ class Player(Bot):
 
     def preflop(self):
         if self.raiseRound == 0:
-            #against all in
-            if self.oppLastAction[0] == "RAISE" and self.oppLastAction[1] == 400:
+            if self.oppLastAction[0] == "RAISE" and self.oppLastAction[1] == 400:            #against all in
                 if self.cal.preflopRank(c2n(self.holeCards)) > 0.9:
                     self.call()
                 else:
@@ -140,7 +140,13 @@ class Player(Bot):
                 self.preflopAllin = True
                 self.rais(self.maxBet)
             else:
-                self.check()
+                if self.button:
+                    self.check()
+                else:
+                    if self.oppLastAction[0] == "RAISE" and self.oppLastAction[1] < self.transitionThres * self.bb and self.cal.preflopRank(c2n(self.holeCards)) > 0.5:
+                        self.call()
+                    else:
+                        self.check()
         else:
             self.check()
     
@@ -332,7 +338,6 @@ class Player(Bot):
                             totalRank[0][rank] += self.preflopAllinWeights[rank] ** 1
                             if rank == 9:
                                 fineRank = (min(int(self.cal2.preflopRank(initCards) * 100), 99) - 90) / (10 / self.fineWeightsBucket)
-                                print "here", fineRank, self.cal2.preflopRank(initCards)
                                 totalRank[1][fineRank] += 1
                     s = sum(totalRank[0]) * 1.0
                     s1 = sum(totalRank[1])* 1.0
