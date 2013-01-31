@@ -191,8 +191,11 @@ class Bot(object):
     #actions
     def check(self):
         #print "checking"
-        self.myLastAction = ["CHECK"]
-        self.sendMessage("CHECK")
+        if "CHECK" in self.actions:
+            self.myLastAction = ["CHECK"]
+            self.sendMessage("CHECK")
+        else:
+            self.fold()
         
     def call(self):
         #print "calling"
