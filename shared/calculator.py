@@ -18,6 +18,9 @@ class Calculator:
         self.preflopOddTable = {}
         self.preflopRankTable = {}
         self.preflopBucket = [[] for i in range(buckets)] 
+        self.topCards = []
+        self.cardCounts = {}
+        self.holeCards = []
         self.rangedPreflopOddTable = {}
         self.rangedFinePreflopOddTable = {}
         pairs = [] 
@@ -31,6 +34,7 @@ class Calculator:
         for i in range(22100):
             self.preflopRankTable[pairs[i][1]] = (i+1)/22100.0
             self.preflopBucket[i/bucketSize].append(unhash_cards(pairs[i][1], 3))
+        self.topCards = self.preflopBucket[9]
         for line in open("dat/rangedPreflopOdd.csv"):
             parts = line.strip().split(",")
             hashCode = int(parts[0])
@@ -41,11 +45,11 @@ class Calculator:
             hashCode = int(parts[0])
             odds = [float(x) for x in parts[1:]]
             self.rangedFinePreflopOddTable[hashCode] = odds
-        self.holeCards = []
         for i in range(0,52):
             for j in range(i+1,52):
                 for k in range(j+1,52):
                     self.holeCards.append((i,j,k))
+                    hashCode = (i * 52 + j) * 52 + k
         self.reset()
     
     def reset(self):
@@ -82,10 +86,16 @@ class Calculator:
             if fineWeights == None:
                 return sum(p*q for p,q in zip(odds, self.preflopWeights))
             else:
+                cardCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                for i, opCards in enumerate(self.topCards):
+                    if cards[0] in opCards or cards[1] in opCards or cards[2] in opCards:
+                        continue
+                    cardCounts[i/221]+=1
+                fineWeights = [p*q for p,q, in zip(fineWeights, cardCounts)]
                 fineWeights = [1.0 * x / sum(fineWeights) for x in fineWeights]
                 topOdds = self.rangedFinePreflopOddTable[hashCode]
-                total = [p*q for p,q in zip(odds, self.preflopWeights)]
                 top = sum([p*q for p,q in zip(topOdds, fineWeights)])
+                total = [p*q for p,q in zip(odds, self.preflopWeights)]
                 total[9] = top * self.preflopWeights[9]
                 return sum(total)
 
@@ -371,65 +381,68 @@ if __name__ == '__main__':
     from datetime import datetime
     
     cal = Calculator()
-    cards = draw_cards(8, True)
-#    cards = c2n(["7h", "Tc", "4s", "6h", "8d", "Js", "8s", "3s"])
-    print cards, n2c(cards[0:3])
-    
-    board = cards[3:6]
-    board.sort()
-    
-    n=odd1=odd2=odd3=0
-    for opCard in cal.holeCards:
-        if opCard[0] in cards[0:6] or opCard[1] in cards[0:6] or opCard[2] in cards[0:6]:
-            continue
-        opCard = "".join(n2c(cal.flopOddNaive(opCard,  board)[0:2]))
-        myCardString1 = "".join(n2c((cards[0], cards[1])))
-        myCardString2 = "".join(n2c((cards[0], cards[2])))
-        myCardString3 = "".join(n2c((cards[1], cards[2])))
-        odd1 += calc(myCardString1 + ":" + opCard, "".join(n2c(cards[3:6])),"", 10000).ev[0]
-        odd2 += calc(myCardString2 + ":" + opCard, "".join(n2c(cards[3:6])),"", 10000).ev[0]
-        odd3 += calc(myCardString3 + ":" + opCard, "".join(n2c(cards[3:6])),"", 10000).ev[0]
-        n+=1
-    print n2c(cards[3:6]), max(odd1,odd2,odd3) / n
-        
-    if odd1 > odd2 and odd1 > odd3:
-        myCardString = myCardString1
-    elif odd2 > odd1 and odd2 > odd3:
-        myCardString = myCardString2
-    else:
-        myCardString = myCardString3
-
-    n = odd = 0
-    for opCard in cal.holeCards:
-        if opCard[0] in cards[0:7] or opCard[1] in cards[0:7] or opCard[2] in cards[0:7]:
-            continue
-        opCardString = "".join(n2c(cal.flopOddNaive(opCard,  board)[0:2]))
-        odd += calc(myCardString + ":" + opCardString, "".join(n2c(cards[3:7])),"", 10000).ev[0]
-        n+=1
-    print myCardString, n2c(cards[3:7]), odd / n
-
-    n = odd = 0
-    for opCard in cal.holeCards:
-        if opCard[0] in cards[0:8] or opCard[1] in cards[0:8] or opCard[2] in cards[0:8]:
-            continue
-        opCardString = "".join(n2c(cal.flopOddNaive(opCard,  board)[0:2]))
-        odd += 1.0 * round(calc(myCardString + ":" + opCardString, "".join(n2c(cards[3:8])), "", 10000).ev[0])
-#        print myCardString + ":" + opCardString, "".join(n2c(cards[3:8])), calc(myCardString + ":" + opCardString, "".join(n2c(cards[3:8])),"", 10000).ev[0]
-        n+=1
-    print myCardString, n2c(cards[3:8]), odd / n
-
-    start = datetime.now()
-    weights1 = [1,1,1,1,1,1,1,1,1,1]
-    weights2 = [1,1,1,1,1,1,1,1,1,1]
-    weights3 = [10,1,1,1,1,1,1,1,1,1]
-    weights4 = [10,1,1,1,1,1,1,1,1,1]
-
-    for i in range(10):
-        preflop = cal.preflopOdd(cards[0:3], weights1)
-        flop = cal.flopOdd(cards[0:3], cards[3:6], weights2, True, .6)
-        myCards = cal.keptCards
-        turn = cal.turnOdd(myCards, cards[3:7])
-        river = cal.riverOdd(myCards, cards[3:8])
-        print preflop, flop, turn, river, n2c(myCards)
-        cal.reset()
-    print "time:" + str(datetime.now() - start)
+    cards = ["As","Ah","Th"]
+    print cards
+    print cal.preflopOdd(c2n(cards), [0,0,0,0,0,0,0,0,0,1], [1,1,1,1,1,1,1,1,1,1])
+#    cards = draw_cards(8, True)
+##    cards = c2n(["7h", "Tc", "4s", "6h", "8d", "Js", "8s", "3s"])
+#    print cards, n2c(cards[0:3])
+#    
+#    board = cards[3:6]
+#    board.sort()
+#    
+#    n=odd1=odd2=odd3=0
+#    for opCard in cal.holeCards:
+#        if opCard[0] in cards[0:6] or opCard[1] in cards[0:6] or opCard[2] in cards[0:6]:
+#            continue
+#        opCard = "".join(n2c(cal.flopOddNaive(opCard,  board)[0:2]))
+#        myCardString1 = "".join(n2c((cards[0], cards[1])))
+#        myCardString2 = "".join(n2c((cards[0], cards[2])))
+#        myCardString3 = "".join(n2c((cards[1], cards[2])))
+#        odd1 += calc(myCardString1 + ":" + opCard, "".join(n2c(cards[3:6])),"", 10000).ev[0]
+#        odd2 += calc(myCardString2 + ":" + opCard, "".join(n2c(cards[3:6])),"", 10000).ev[0]
+#        odd3 += calc(myCardString3 + ":" + opCard, "".join(n2c(cards[3:6])),"", 10000).ev[0]
+#        n+=1
+#    print n2c(cards[3:6]), max(odd1,odd2,odd3) / n
+#        
+#    if odd1 > odd2 and odd1 > odd3:
+#        myCardString = myCardString1
+#    elif odd2 > odd1 and odd2 > odd3:
+#        myCardString = myCardString2
+#    else:
+#        myCardString = myCardString3
+#
+#    n = odd = 0
+#    for opCard in cal.holeCards:
+#        if opCard[0] in cards[0:7] or opCard[1] in cards[0:7] or opCard[2] in cards[0:7]:
+#            continue
+#        opCardString = "".join(n2c(cal.flopOddNaive(opCard,  board)[0:2]))
+#        odd += calc(myCardString + ":" + opCardString, "".join(n2c(cards[3:7])),"", 10000).ev[0]
+#        n+=1
+#    print myCardString, n2c(cards[3:7]), odd / n
+#
+#    n = odd = 0
+#    for opCard in cal.holeCards:
+#        if opCard[0] in cards[0:8] or opCard[1] in cards[0:8] or opCard[2] in cards[0:8]:
+#            continue
+#        opCardString = "".join(n2c(cal.flopOddNaive(opCard,  board)[0:2]))
+#        odd += 1.0 * round(calc(myCardString + ":" + opCardString, "".join(n2c(cards[3:8])), "", 10000).ev[0])
+##        print myCardString + ":" + opCardString, "".join(n2c(cards[3:8])), calc(myCardString + ":" + opCardString, "".join(n2c(cards[3:8])),"", 10000).ev[0]
+#        n+=1
+#    print myCardString, n2c(cards[3:8]), odd / n
+#
+#    start = datetime.now()
+#    weights1 = [1,1,1,1,1,1,1,1,1,1]
+#    weights2 = [1,1,1,1,1,1,1,1,1,1]
+#    weights3 = [10,1,1,1,1,1,1,1,1,1]
+#    weights4 = [10,1,1,1,1,1,1,1,1,1]
+#
+#    for i in range(10):
+#        preflop = cal.preflopOdd(cards[0:3], weights1)
+#        flop = cal.flopOdd(cards[0:3], cards[3:6], weights2, True, .6)
+#        myCards = cal.keptCards
+#        turn = cal.turnOdd(myCards, cards[3:7])
+#        river = cal.riverOdd(myCards, cards[3:8])
+#        print preflop, flop, turn, river, n2c(myCards)
+#        cal.reset()
+#    print "time:" + str(datetime.now() - start)

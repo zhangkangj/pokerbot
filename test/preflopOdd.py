@@ -7,7 +7,7 @@ Created on Jan 12, 2013
 from shared.pbots_calc import calc
 from shared.util import n2c, c2n, draw_cards, hash_cards, reduce_hand, unhash_cards, number_to_card
 from datetime import datetime
-from random import random 
+from random import random, sample
 from shared.calculator import Calculator, simpleDiscard
 import sys
 import numpy as np
@@ -169,7 +169,7 @@ def mergeRanged():
     print n
                     
 if __name__ == '__main__':
-    calculator = Calculator()
+    cal = Calculator()
 #    for i in range(1):
 #        cards = draw_cards(3, True)
 ##        cards = c2n("8s 5c Qc".split(" "))
@@ -205,19 +205,39 @@ if __name__ == '__main__':
 #    print opCards
 #    print computeRangedPreFlopOdd(index, opCards)
 #    index = 9
+    index = 0
     opCards = []
     for line in open("dat/preflopOdd.csv"):
         parts = line.strip().split(",")
         hashCode = int(parts[0])
         odd = float(parts[1])
         opCards.append((odd, hashCode))
-    opCards.sort()
-#    opCards = opCards[index*221:(index+1)*221]
-#    opCards = [unhash_cards(x[1], 3) for x in opCards]
-    for i in range(100):
-        print opCards[i*221][0]
-#    print [n2c(x) for x in opCards]
-##    start = datetime.now()
-##    print preflopOdd(c2n(["Ah", "As", "Th"]), opCards, 1000)
-##    print "time:" + str(datetime.now() - start)
-#    computeRangedPreFlopOdd(index, opCards)
+    opCards.sort(reverse = True)
+    allOpCards = [unhash_cards(x[1], 3) for x in opCards]
+    
+    start = datetime.now()
+    cards = draw_cards(3, True) 
+    cards = c2n(['Ac', 'Ah', 'Tc'])
+#    cards = allOpCards[100]
+    opCards = allOpCards[0:2210]
+    print n2c(cards), hash_cards(cards)
+    print "---"
+    print preflopOdd(cards, opCards, 500)
+    print "---"
+    print preflopOdd(cards, opCards[0:1105], 500)
+    print preflopOdd(cards, opCards[1105:2100], 500)
+    print "---"
+    print preflopOdd(cards, opCards[0:442], 500)
+    print preflopOdd(cards, opCards[442:884], 500)
+    print preflopOdd(cards, opCards[884:1326], 500)
+    print preflopOdd(cards, opCards[1326:1768], 500)
+    print preflopOdd(cards, opCards[1768:2210], 500)
+    print "---"
+    print cal.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1]), cal.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1], [1,1,1,1,1,1,1,1,1,1])
+    print "---"
+    for i in range(10):
+        opCards = allOpCards[i * 221: (i+1)*221] 
+        weights = [0] * 10
+        weights[9-i] = 1
+        print preflopOdd(cards, opCards, 1000), cal.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1], weights)
+    print "time:" + str(datetime.now() - start)

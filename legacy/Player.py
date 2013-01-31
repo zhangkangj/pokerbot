@@ -67,44 +67,18 @@ class Player(Bot):
         self.equity = self.cal2.preflopOdd(c2n(self.holeCards), weights)
         self.cal2.reset()
         profit = foldRate * self.potSize + (1 - foldRate) * (self.stackSize * 2 * self.equity - self.maxBet)
+        print self.equity, profit, self.potSize, foldRate, weights
         if profit > 0:
+#            self.cal.preflopWeights = weights
+            print "raised", self.cal2.preflopRank(c2n(self.holeCards)), self.equity, profit
             distribution.append(None)
             if len(distribution) > self.window:
                 distribution.pop()
             self.preflopAllin = True
             self.rais(self.maxBet)
             return
-        
-        self.preflopWeights = self.preflopWeights1
-        myCards = c2n(self.holeCards)
-        myCards.sort()
-        rank = self.cal.preflopRank(myCards)
-        if self.raiseRound == 0 and self.button:
-            if rank < 0.02:
-                self.fold()
-            else:
-                self.rais(7)
-        elif self.oppLastAction[0] == "CALL":
-            if rank < 0.02:
-                self.check()
-            else:
-                self.rais(7)
-        elif self.oppLastAction[0] == "RAISE":
-            minBet = self.oppLastAction[1] * 2 - self.potSize
-            if self.oppLastAction[1] * 2 - self.potSize > 100:
-                self.preflopWeights = self.preflopWeights2
-            else:
-                self.preflopWeights = self.preflopWeights3
-                self.equity = self.cal.preflopOdd(c2n(self.holeCards), self.preflopWeights)
-            if self.equity > 0.6:
-                if self.minBet == None or self.maxBet == None:
-                    self.call()
-                else:
-                    self.rais(max(self.minBet, min(self.maxBet, self.oppLastAction[1])))
-            elif self.equity > 1.0 * minBet / (self.potSize + minBet):
-                self.call()
-            else:
-                self.fold()
+        else:
+            self.check()
                 
     def flop(self):
         if "DISCARD" in self.actions:
@@ -123,10 +97,7 @@ class Player(Bot):
         self.check()
     
     def handOver(self):
-        print 1.0 * sum(self.preflopAllinWin) / (len(self.preflopAllinWin)+1)
-        print 1.0 * sum(self.flopAllinWin) / (len(self.flopAllinWin)+1)
-        print 1.0 * sum(self.turnAllinWin) / (len(self.turnAllinWin)+1)
-        print 1.0 * sum(self.riverAllinWin) / (len(self.riverAllinWin)+1)
+        print 0.5 * sum(self.preflopAllinWin) / (len(self.preflopAllinWin)+1), 0.5 * sum(self.flopAllinWin) / (len(self.flopAllinWin)+1), 0.5 * sum(self.turnAllinWin) / (len(self.turnAllinWin)+1), 0.5 * sum(self.riverAllinWin) / (len(self.riverAllinWin)+1)
         for action in self.lastActions:
             winAmount = None
             if "WIN" in action:
@@ -138,19 +109,19 @@ class Player(Bot):
             if winAmount != None:
                 if self.preflopAllin:
                     self.preflopAllinWin.append(winAmount)
-                    if len(self.preflopAllinWin) > 1000:
+                    if len(self.preflopAllinWin) > 10000:
                         self.preflopAllinWin.pop(0)
                 elif self.flopAllin:
                     self.flopAllinWin.append(winAmount)
-                    if len(self.flopAllinWin) > 1000:
+                    if len(self.flopAllinWin) > 10000:
                         self.flopAllinWin.pop(0)
                 elif self.turnAllin:
                     self.turnAllinWin.append(winAmount)
-                    if len(self.turnAllinWin) > 1000:
+                    if len(self.turnAllinWin) > 10000:
                         self.turnAllinWin.pop(0)
                 elif self.riverAllin:
                     self.riverAllinWin.append(winAmount)
-                    if len(self.riverAllinWin) > 1000:
+                    if len(self.riverAllinWin) > 10000:
                         self.riverAllinWin.pop(0)                        
             if "SHOW" in action and self.oppName in action:
                 (o1, o2) = c2n(action[1:3])
@@ -164,7 +135,7 @@ class Player(Bot):
                         if o1 in initCards and o2 in initCards:
                             (c1, c2) = self.cal2.flopOddNaive(initCards, board)[0:2]
                             if o1 == c1 and o2 == c2:
-                                rank = min(int(self.cal2.preflopRank(initCards) * 10), 9)
+                                rank = min(int(self.cal2.preflopRank(list(initCards)) * 10), 9)
                                 totalRank[rank] += 1
                     s = sum(totalRank)
                     if s != 0:
