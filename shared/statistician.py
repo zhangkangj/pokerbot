@@ -144,13 +144,13 @@ class Statistician:
             return float(sum(self.oppShowdownRiverEqu))/len(self.oppShowdownRiverEqu)
             
     def getOppShowdownRate(self):
-        if self.oppShowdowns == []:
+        if self.oppShowdowns == [] or sum(self.oppShowdowns) == 0:
             return 1
         
         return float(sum(self.oppShowdowns)) / len(self.oppShowdowns)
 
     def getOppShowdownWinRate(self):
-        if self.oppShowdownWins == []:
+        if self.oppShowdownWins == [] or sum(self.oppShowdownWins) == 0:
             return 0
         
         return float(sum(self.oppShowdownWins)) / len(self.oppShowdownWins)
@@ -323,7 +323,8 @@ class Statistician:
         else:
             numBigger = sortedArray.index(num)
             
-        return [float(numBigger)/len(sortedArray), float(numBigger+numAppearances)/len(sortedArray)]
+#        return [float(numBigger)/len(sortedArray), float(numBigger+numAppearances)/len(sortedArray)]
+        return [0, float(numBigger+numAppearances)/len(sortedArray)]
     
     # approximating the interval
     def fromRangeToLevels(self, oppRange, numLevels = 10):
