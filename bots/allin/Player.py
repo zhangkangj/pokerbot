@@ -7,8 +7,8 @@ from shared.pbots_calc import calc
 from shared.calculator import Calculator
 
 class Player(Bot):
-    def __init__(self):
-        Bot.__init__(self)
+    def __init__(self, myStat = None):
+        Bot.__init__(self, stat = myStat)
         self.fineWeightsBucket = 5
         self.flopOffset = 0
         
