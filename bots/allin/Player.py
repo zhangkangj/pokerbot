@@ -44,7 +44,7 @@ class Player(Bot):
         self.turnAllin = False
         self.riverAllin = False
         if self.handID % 500 == 0:
-            winHistory = self.flopEntranceWin[-500:]
+            winHistory = self.flopEntranceWin[-100:]
             if 0.5 * sum(winHistory) / (len(winHistory)+1) > 0:
                 self.flopOffset = min(0.6, self.flopOffset + 0.05)
             else:
@@ -98,7 +98,7 @@ class Player(Bot):
                 else:
                     if self.preflopAllinBetSize != 2 and distribution[i] == None:
                         fold += 1
-        print "here", baseFoldRate, fold, len(distribution), fold / (len(distribution) + 20)
+#        print "here", baseFoldRate, fold, len(distribution), fold / (len(distribution) + 20)
         return fold / (len(distribution) + 20)
     
     def preflop(self):
