@@ -46,9 +46,9 @@ class Player(Bot):
         if self.handID % 500 == 0:
             winHistory = self.flopEntranceWin[-500:]
             if 0.5 * sum(winHistory) / (len(winHistory)+1) > 0:
-                self.flopOffSet = max(-.1, self.flopOffSet - 0.05)
+                self.flopOffSet = min(0.6, self.flopOffSet + 0.05)
             else:
-                self.flopOffSet = min(1, self.flopOffSet + 0.05)
+                self.flopOffSet = self.flopOffSet * 0.5
                 
     def preflopAllinRange(self, distribution):
         weights = [0, 0, 0, 0, 0, 0, 0, .5, .5, 1]
@@ -150,7 +150,7 @@ class Player(Bot):
                         raiseAmount = self.oppLastAction[1]
                         if raiseAmount < 10:
                             rank = self.cal.preflopRank(c2n(self.holeCards))
-                            if rank > raiseAmount / 10.0 + self.flopOffset + .2:
+                            if rank > raiseAmount / 10.0 - self.flopOffset + 0.6:
                                 self.call()
                                 return
                     self.check()
