@@ -393,9 +393,16 @@ if __name__ == '__main__':
     from datetime import datetime
     
     cal = Calculator()
-    cards = ["Ac","Ah","Tc"]
-    print cards
-    print cal.preflopOdd(c2n(cards), [0,0,0,0,0,0,0,0,0,1], [1,1,1,1,1])
+    cards = ["2s", "9d", "6s"]
+    board = ["7c", "2c", "Ac"]
+    print cards, board
+    cards = c2n(cards)
+    board = c2n(board)
+#    print cal.preflopOdd(cards, [0,0,0,0,0,0,0,0,0,1], [1,1,1,1,1])
+    print cal.flopOdd(cards, board, [0,0,0,0,0,0,0,1,1,1])
+    cal.reset()
+    print cal.flopOdd(cards, board, [1]*10)
+    
 #    cards = draw_cards(8, True)
 ##    cards = c2n(["7h", "Tc", "4s", "6h", "8d", "Js", "8s", "3s"])
 #    print cards, n2c(cards[0:3])
