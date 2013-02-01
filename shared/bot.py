@@ -10,9 +10,12 @@ from time import time
 
 class Bot(object):
 
-    def initialize_match(self):
+    def initialize_match(self, stat):
         self.cal = Calculator()
-        self.stat = Statistician()
+        if stat == None:
+            self.stat = Statistician()
+        else:
+            self.stat = stat
         self.name = None
         self.oppName = None
         self.stackSize = None
@@ -45,8 +48,8 @@ class Bot(object):
         self.curStreetBet = 0
         self.canRaise = False
         
-    def __init__(self):                
-        self.initialize_match()    
+    def __init__(self, stat = None):                
+        self.initialize_match(stat)    
         
     # private methods
     def run(self, input_socket):
