@@ -160,7 +160,7 @@ class Calculator:
         if cachedOdds == None:
             for (c1,c2) in opCards:
                 i+=1
-                if distribution[i] != 0:
+                if distribution[i] != 0 and c1 not in board and c2 not in board:
                     if sampleCards and random() < sampleRate:
                         continue 
                     opString = number_to_card(c1) + number_to_card(c2)
@@ -173,7 +173,7 @@ class Calculator:
         else:
             for (c1,c2) in opCards:
                 i+=1
-                if distribution[i] != 0 and cachedOdds[i] != None:
+                if distribution[i] != 0 and cachedOdds[i] != None and c1 not in board and c2 not in board:
                     totalProb += cachedOdds[i] * distribution[i]
                     totalWeight += distribution[i]
             return totalProb / totalWeight, cachedOdds
