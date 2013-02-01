@@ -145,12 +145,12 @@ class Statistician:
             
     def getOppShowdownRate(self):
         if self.oppShowdowns == [] or sum(self.oppShowdowns) == 0:
-            return 1
+            return .001
         
         return float(sum(self.oppShowdowns)) / len(self.oppShowdowns)
 
     def getOppShowdownWinRate(self):
-        if self.oppShowdownWins == [] or sum(self.oppShowdownWins) == 0:
+        if self.oppShowdownWins == []:
             return 0
         
         return float(sum(self.oppShowdownWins)) / len(self.oppShowdownWins)
