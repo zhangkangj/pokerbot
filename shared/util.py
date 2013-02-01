@@ -147,6 +147,8 @@ def meanstdv(x):
     
     if n == 0:
         return mean, std
+    elif n == 1:
+        return x[0], std
     
     for a in x:
         mean = mean + a    
