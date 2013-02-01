@@ -15,8 +15,8 @@ turnRaiseRatio = [10, 15]
 riverRaiseRatio = [10, 15]
 
 class rangeEquity(Bot):
-    def __init__(self):
-        super(rangeEquity, self).__init__()
+    def __init__(self, myStat = None):
+        Bot.__init__(self, stat = myStat)
         self.equity = None
         self.preflopEquThreshold = None
         self.preflopRaiseRatios = None 
