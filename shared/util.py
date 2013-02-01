@@ -141,6 +141,22 @@ def sample_distribution(population, counts):
                 result.append(population[i][j])
     return result
     
+def meanstdv(x):
+    from math import sqrt
+    n, mean, std = len(x), 0, 0
+    
+    if n == 0:
+        return mean, std
+    
+    for a in x:
+        mean = mean + a    
+    mean = mean / float(n)
+    
+    for a in x:
+        std = std + (a - mean)**2
+    std = sqrt(std / float(n-1))
+    return mean, std    
+    
 if __name__ == '__main__':
 #testing reduce_hand()
 #    cardValuesArray = [[13, 14, 15], [14, 40, 4], [50, 30, 31], [30, 50, 31], [30, 31, 50]]
